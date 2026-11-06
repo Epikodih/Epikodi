@@ -1,0 +1,9 @@
+name: epikodi_workspace
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - apps/tv
+  - apps/remote
+  - packages/client
+  - packages/design_system

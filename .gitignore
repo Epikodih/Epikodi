@@ -1,0 +1,9 @@
+target/
+.dart_tool/
+build/
+.env
+data/
+*.db
+*.db-wal
+*.db-shm
+media-demo/

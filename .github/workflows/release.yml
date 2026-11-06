@@ -1,0 +1,131 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - name: Dépendances système
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config \
+            libgtk-3-dev libmpv-dev libssl-dev
+      - name: Build du cœur
+        run: cargo build --release -p epikodi-core
+      - name: Build de l'app TV
+        working-directory: apps/tv
+        run: |
+          flutter pub get
+          flutter build linux --release
+      - name: Packaging
+        run: |
+          mkdir -p dist/epikodi-tv-linux
+          cp -r apps/tv/build/linux/x64/release/bundle/* dist/epikodi-tv-linux/
+          cp target/release/epikodi-core dist/epikodi-tv-linux/
+          tar -czf epikodi-tv-linux-x64.tar.gz -C dist epikodi-tv-linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tv-linux
+          path: epikodi-tv-linux-x64.tar.gz
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - name: Build du cœur
+        run: cargo build --release -p epikodi-core
+      - name: Build de l'app TV
+        working-directory: apps/tv
+        run: |
+          flutter pub get
+          flutter build windows --release
+      - name: Packaging
+        run: |
+          $out = "dist/epikodi-tv-windows"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          Copy-Item -Recurse apps/tv/build/windows/x64/runner/Release/* $out
+          Copy-Item target/release/epikodi-core.exe $out
+          Compress-Archive -Path $out -DestinationPath epikodi-tv-windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tv-windows
+          path: epikodi-tv-windows-x64.zip
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: "aarch64-apple-darwin, x86_64-apple-darwin" }
+      - uses: Swatinem/rust-cache@v2
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - name: Build du cœur (universel arm64 + x86_64)
+        run: |
+          cargo build --release -p epikodi-core --target aarch64-apple-darwin
+          cargo build --release -p epikodi-core --target x86_64-apple-darwin
+          lipo -create -output epikodi-core \
+            target/aarch64-apple-darwin/release/epikodi-core \
+            target/x86_64-apple-darwin/release/epikodi-core
+      - name: Build de l'app TV
+        working-directory: apps/tv
+        run: |
+          flutter pub get
+          flutter build macos --release
+      - name: Packaging
+        run: |
+          APP=$(ls -d apps/tv/build/macos/Build/Products/Release/*.app | head -n 1)
+          cp epikodi-core "$APP/Contents/MacOS/"
+          codesign --force --deep --sign - "$APP"
+          ditto -c -k --keepParent "$APP" epikodi-tv-macos.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tv-macos
+          path: epikodi-tv-macos.zip
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - name: Build de la télécommande
+        working-directory: apps/remote
+        run: |
+          flutter pub get
+          flutter build apk --release
+      - name: Packaging
+        run: cp apps/remote/build/app/outputs/flutter-apk/app-release.apk epikodi-remote.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: remote-android
+          path: epikodi-remote.apk
+
+  publish:
+    needs: [linux, windows, macos, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true

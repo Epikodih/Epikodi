@@ -1,0 +1,3 @@
+# EpiKodi
+
+Voir ARCHITECTURE.md.

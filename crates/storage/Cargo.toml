@@ -1,0 +1,8 @@
+[package]
+name = "epikodi-storage"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+epikodi-domain.workspace = true
+rusqlite.workspace = true

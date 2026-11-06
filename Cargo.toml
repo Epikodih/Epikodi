@@ -1,0 +1,30 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+epikodi-domain     = { path = "crates/domain" }
+epikodi-storage    = { path = "crates/storage" }
+epikodi-library    = { path = "crates/library" }
+epikodi-sources    = { path = "crates/sources" }
+epikodi-metadata   = { path = "crates/metadata" }
+epikodi-extensions = { path = "crates/extensions" }
+epikodi-api        = { path = "crates/api" }
+
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.7", features = ["ws"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+rand = "0.8"
+sha2 = "0.10"
+local-ip-address = "0.6"
+rusqlite  = { version = "0.32", features = ["bundled"] }
+thiserror = "1"
+toml = "0.8"

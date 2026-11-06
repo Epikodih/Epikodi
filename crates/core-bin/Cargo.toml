@@ -1,0 +1,20 @@
+[package]
+name = "epikodi-core"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "epikodi-core"
+path = "src/main.rs"
+
+[dependencies]
+epikodi-api.workspace = true
+epikodi-storage.workspace = true
+
+tokio.workspace = true
+axum.workspace = true
+serde.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+local-ip-address.workspace = true
+toml.workspace = true

@@ -1,0 +1,13 @@
+name: epikodi_tv
+publish_to: none
+resolution: workspace
+environment:
+  sdk: ^3.6.0
+dependencies:
+  flutter:
+    sdk: flutter
+  epikodi_client:
+    path: ../../packages/client
+  epikodi_design_system:
+    path: ../../packages/design_system
+  media_kit: ^1.1.0
