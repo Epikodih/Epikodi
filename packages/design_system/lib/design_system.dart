@@ -1,1 +1,3 @@
-library epikodi_design_system;
+library design_system;
+
+export 'src/gloubi.dart';

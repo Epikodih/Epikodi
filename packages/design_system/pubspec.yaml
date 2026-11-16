@@ -1,4 +1,4 @@
-name: epikodi_design_system
+name: design_system
 publish_to: none
 resolution: workspace
 environment:
@@ -6,3 +6,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+flutter:
+  assets:
+    - assets/mascot/
