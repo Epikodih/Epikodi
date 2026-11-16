@@ -11,6 +11,11 @@ on:
     branches: ["**"]
   workflow_dispatch:
 
+# Version de Flutter fixée : la même en local et en CI (lint et tests
+# reproductibles). Pour monter de version : changer ici, puis `flutter upgrade`.
+env:
+  FLUTTER_VERSION: "3.44.6"
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -36,7 +41,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Dépendances
         run: flutter pub get
       - name: Lint
@@ -57,7 +65,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Tests
         run: dart scripts/test.dart flutter
 
@@ -76,7 +87,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Dépendances système (Linux)
         if: matrix.target == 'linux'
         run: |
