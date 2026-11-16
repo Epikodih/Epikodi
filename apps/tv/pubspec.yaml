@@ -6,8 +6,25 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   epikodi_client:
     path: ../../packages/client
   epikodi_design_system:
     path: ../../packages/design_system
+  qr_flutter: ^4.1.0
   media_kit: ^1.1.0
+  media_kit_video: ^1.2.0
+  media_kit_libs_video: ^1.0.5
+  window_manager: ^0.5.2
+  file_picker: ^13.3.2
+  clock: ^1.1.1
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  http: ^1.2.2
+  flutter_lints: ^5.0.0
+flutter:
+  uses-material-design: true
+  generate: true

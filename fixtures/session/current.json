@@ -1,0 +1,16 @@
+{
+  "device": {
+    "id": 1,
+    "name": "Pixel 7",
+    "paired_at": "2026-11-07T18:31:12Z"
+  },
+  "profile": {
+    "kind": "account",
+    "id": 2,
+    "name": "Léa",
+    "icon": "avatar_07",
+    "language": "fr",
+    "age": 10,
+    "is_restricted": true
+  }
+}

@@ -7,3 +7,11 @@ data/
 *.db-wal
 *.db-shm
 media-demo/
+
+# Faux serveur de dev, gardé en local
+test_api.py
+
+# Réglages et fichiers propres à chaque machine
+.vscode/
+local.properties
+**/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
