@@ -30,33 +30,27 @@ jobs:
       - name: Tests (cœur + extensions)
         run: cargo test --workspace
 
+  # Lint Flutter (une fois suffit : l'analyse ne dépend pas de l'OS).
   flutter:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with: { channel: stable, cache: true }
-      - name: Dépendances système
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config \
-            libgtk-3-dev libmpv-dev
       - name: Dépendances
         run: flutter pub get
       - name: Lint
         run: flutter analyze packages/client packages/design_system apps/tv apps/remote
-      - name: Tests (TV, télécommande, packages)
-        run: dart scripts/test.dart flutter
 
-  # Tests de l'app TV (et des packages qu'elle utilise) sur les autres OS
-  # du media center. Linux est déjà couvert par le job flutter.
-  # Lance la même commande que `just test-flutter`.
+  # Tests de l'app TV (et des packages qu'elle utilise) sur les trois OS
+  # du media center. Même commande que `just test-flutter`.
   tests-tv:
     name: tests TV (${{ matrix.target }})
     strategy:
       fail-fast: false
       matrix:
         include:
+          - { os: ubuntu-latest, target: linux }
           - { os: windows-latest, target: windows }
           - { os: macos-latest, target: macos }
     runs-on: ${{ matrix.os }}

@@ -9,8 +9,8 @@
    sauf l'auteur du push.
 3. **`ci.yml`** tourne sur le même commit. Ses résultats s'affichent sur la PR :
    - `rust` : `cargo fmt --check`, `cargo clippy -D warnings`, tests Rust
-   - `flutter` : `flutter analyze` puis tests de la TV, de la télécommande et des packages (Linux)
-   - `tests TV (windows|macos)` : les mêmes tests Flutter sur Windows et macOS
+   - `flutter` : `flutter analyze` (lint) des apps et packages Flutter
+   - `tests TV (linux|windows|macos)` : tests Flutter de la TV et de ses packages sur les trois OS
    - `build (linux|windows|macos)` : build du cœur et de l'app TV
 4. Chaque nouveau push sur la branche relance la CI. La PR existante se met à jour.
 5. Quand la CI est verte **et** qu'un code owner a approuvé, tu merges dans `dev`.
@@ -56,7 +56,7 @@ tournent, mais rien n'empêche de merger une PR rouge.
      - *Require approvals* : 1
      - *Require review from Code Owners*
    - *Require status checks to pass before merging*, avec les checks
-     `rust`, `flutter`, `tests TV (windows)`, `tests TV (macos)`,
+     `rust`, `flutter`, `tests TV (linux)`, `tests TV (windows)`, `tests TV (macos)`,
      `build (linux)`, `build (windows)`, `build (macos)`
      (ils apparaissent dans la liste après un premier run de la CI)
    - *Do not allow bypassing the above settings*
