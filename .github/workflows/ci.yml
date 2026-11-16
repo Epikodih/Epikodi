@@ -48,6 +48,25 @@ jobs:
       - name: Tests (TV, télécommande, packages)
         run: dart scripts/test.dart flutter
 
+  # Tests de l'app TV (et des packages qu'elle utilise) sur les autres OS
+  # du media center. Linux est déjà couvert par le job flutter.
+  # Lance la même commande que `just test-flutter`.
+  tests-tv:
+    name: tests TV (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, target: windows }
+          - { os: macos-latest, target: macos }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - name: Tests
+        run: dart scripts/test.dart flutter
+
   build-desktop:
     name: build (${{ matrix.target }})
     strategy:
