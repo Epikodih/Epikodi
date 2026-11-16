@@ -1,0 +1,242 @@
+{
+  "base_url": "http://localhost:7878",
+  "auth_header": "Authorization: Bearer <token>",
+  "error_format": "errors/error.json",
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "auth": "none",
+      "status": 200,
+      "response": "health/ok.json",
+      "errors": [
+        {
+          "status": 503,
+          "note": "Base pas prête. Corps : {\"status\": \"starting\"}"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/tv/connect",
+      "auth": "localhost",
+      "status": 201,
+      "request": "tv/connect_request.json",
+      "response": "tv/connect_response.json",
+      "errors": [
+        {
+          "status": 422,
+          "code": "validation_failed"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/tv/pairing/refresh",
+      "auth": "localhost",
+      "status": 200,
+      "request": "tv/refresh_request.json",
+      "response": "tv/refresh_response.json",
+      "errors": [
+        {
+          "status": 404,
+          "code": "tv_session_not_found"
+        },
+        {
+          "status": 422,
+          "code": "validation_failed"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/remote/pair",
+      "auth": "none",
+      "status": 200,
+      "request": "pairing/request.json",
+      "response": "pairing/response.json",
+      "errors": [
+        {
+          "status": 403,
+          "code": "pairing_code_invalid"
+        },
+        {
+          "status": 410,
+          "code": "pairing_code_expired"
+        },
+        {
+          "status": 429,
+          "code": "pairing_too_many_attempts"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profiles",
+      "auth": "bearer",
+      "status": 200,
+      "response": "profiles/list.json",
+      "errors": [
+        {
+          "status": 401,
+          "code": "unauthorized"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/profiles",
+      "auth": "bearer",
+      "status": 201,
+      "request": "profiles/create_request.json",
+      "response": "profiles/create_response.json",
+      "errors": [
+        {
+          "status": 401,
+          "code": "unauthorized"
+        },
+        {
+          "status": 403,
+          "code": "guest_forbidden"
+        },
+        {
+          "status": 409,
+          "code": "profile_name_taken"
+        },
+        {
+          "status": 422,
+          "code": "validation_failed"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/profiles/{id}",
+      "auth": "bearer",
+      "status": 200,
+      "response": "profiles/get_response.json",
+      "errors": [
+        {
+          "status": 401,
+          "code": "unauthorized"
+        },
+        {
+          "status": 404,
+          "code": "profile_not_found"
+        }
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/profiles/{id}",
+      "auth": "bearer",
+      "status": 200,
+      "request": "profiles/update_request.json",
+      "response": "profiles/update_response.json",
+      "errors": [
+        {
+          "status": 401,
+          "code": "unauthorized"
+        },
+        {
+          "status": 403,
+          "code": "guest_forbidden"
+        },
+        {
+          "status": 403,
+          "code": "pin_required"
+        },
+        {
+          "status": 403,
+          "code": "pin_invalid"
+        },
+        {
+          "status": 404,
+          "code": "profile_not_found"
+        },
+        {
+          "status": 409,
+          "code": "profile_name_taken"
+        },
+        {
+          "status": 422,
+          "code": "validation_failed"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/session",
+      "auth": "bearer",
+      "status": 200,
+      "response": "session/current.json",
+      "errors": [
+        {
+          "status": 401,
+          "code": "unauthorized"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/api/session/profile",
+      "auth": "bearer",
+      "status": 200,
+      "request": "session/select_request.json",
+      "response": "session/select_response.json",
+      "errors": [
+        {
+          "status": 401,
+          "code": "unauthorized"
+        },
+        {
+          "status": 403,
+          "code": "pin_required"
+        },
+        {
+          "status": 403,
+          "code": "pin_invalid"
+        },
+        {
+          "status": 404,
+          "code": "profile_not_found"
+        },
+        {
+          "status": 429,
+          "code": "pin_locked"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/media",
+      "auth": "bearer + profil choisi",
+      "status": 200,
+      "query": [
+        "kind",
+        "parent_id",
+        "limit",
+        "offset"
+      ],
+      "response": "media/list.json",
+      "errors": [
+        {
+          "status": 401,
+          "code": "unauthorized"
+        },
+        {
+          "status": 403,
+          "code": "profile_required"
+        },
+        {
+          "status": 404,
+          "code": "media_not_found"
+        },
+        {
+          "status": 422,
+          "code": "invalid_query"
+        }
+      ]
+    }
+  ]
+}

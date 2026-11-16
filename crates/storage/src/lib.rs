@@ -1,10 +1,9 @@
-pub mod db;
-pub mod migrate;
-pub mod json;
-pub mod repositories;
 pub mod cache;
+pub mod db;
+pub mod json;
+pub mod migrate;
+pub mod repositories;
 pub mod secrets;
-
 
 use std::path::Path;
 

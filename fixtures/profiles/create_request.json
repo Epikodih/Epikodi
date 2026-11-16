@@ -1,0 +1,8 @@
+{
+  "name": "Marc",
+  "icon": "avatar_03",
+  "language": "fr",
+  "age": 35,
+  "is_restricted": false,
+  "pin": "1234"
+}

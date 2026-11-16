@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "pin_invalid",
+    "message": "Code PIN incorrect.",
+    "details": {
+      "attempts_left": 2
+    }
+  }
+}

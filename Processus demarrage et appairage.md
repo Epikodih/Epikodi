@@ -9,7 +9,7 @@ Le système repose sur trois composants :
 - **Le serveur Rust** : cœur du système. Il expose l'API HTTP sur le port 7878, gère la base de données, génère les codes d'appairage et émet les tokens de session.
 - **L'application TV (Flutter)** : écran principal du salon. Elle est lancée en même temps que le serveur et s'y connecte en local.
 - **L'application télécommande (Flutter, Android)** : lancée sur un téléphone, elle se connecte au serveur via son adresse IP sur le réseau local, s'appaire avec la TV et pilote ensuite l'application.
-
+    
 ### Chronologie résumée
 
 1. Lancement simultané du serveur Rust et de l'app TV.

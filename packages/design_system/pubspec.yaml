@@ -1,8 +1,12 @@
 name: epikodi_design_system
+description: Tokens, thème et composants partagés (TV et télécommande).
 publish_to: none
 resolution: workspace
 environment:
   sdk: ^3.6.0
 dependencies:
   flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
     sdk: flutter

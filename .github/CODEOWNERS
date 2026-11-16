@@ -1,0 +1,4 @@
+# Relecteurs demandés automatiquement sur chaque pull request.
+# Avec « Require review from Code Owners » sur dev/main, leur validation
+# est obligatoire avant le merge.
+*  @malo-coet @loicosternaud

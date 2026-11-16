@@ -1,0 +1,116 @@
+{
+  "@@locale": "en",
+
+  "connectingToServer": "Connecting to server",
+  "retry": "Retry",
+  "retryConnectionLabel": "Try connecting to the server again",
+  "unexpectedError": "Unexpected error: {details}",
+  "@unexpectedError": {
+    "placeholders": { "details": { "type": "String" } }
+  },
+
+  "createAccount": "Create an account",
+  "createAccountButton": "Create account",
+  "creating": "Creating...",
+  "back": "Back",
+  "name": "Name",
+  "nameHint": "First name or nickname",
+  "enterName": "Enter a name.",
+  "choosePhoto": "Choose my photo",
+  "imagePickError": "Unable to pick an image here.",
+  "avatarIcon": "Icon {number}",
+  "@avatarIcon": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "avatarIconSelected": "Icon {number}, selected",
+  "@avatarIconSelected": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "age": "Age",
+  "ageYears": "{age} years old",
+  "@ageYears": {
+    "placeholders": { "age": { "type": "int" } }
+  },
+  "decreaseAge": "Decrease age",
+  "increaseAge": "Increase age",
+  "language": "Language",
+  "childProfile": "Child profile",
+  "childProfileSemantic": "Child profile (parental control)",
+  "yes": "Yes",
+  "no": "No",
+  "noContentBlocked": "No content blocked",
+  "noContentBlockedAdult": "No content blocked (18 and over)",
+  "blocksRatingAndAbove": "Blocks {rating}+ and above",
+  "@blocksRatingAndAbove": {
+    "placeholders": { "rating": { "type": "int" } }
+  },
+
+  "pairingTitle": "Connect the remote",
+  "pairingInstruction": "Scan the QR code or enter the code in the app.",
+  "newCode": "New code",
+  "newCodeCooldown": "New code ({seconds} s)",
+  "@newCodeCooldown": {
+    "placeholders": { "seconds": { "type": "int" } }
+  },
+  "newCodeSemantics": "Generate a new code and a new QR code",
+  "newCodeCoolingSemantics": "New code, available in a few seconds",
+  "expiresIn": "Expires in {time}",
+  "@expiresIn": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "expiresSemantics": "The code expires in {minutes} minutes",
+  "@expiresSemantics": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "pairingCodeSemantics": "Pairing code: {code}",
+  "@pairingCodeSemantics": {
+    "placeholders": { "code": { "type": "String" } }
+  },
+  "pairingQrSemantics": "Pairing QR code",
+  "switchLanguageLabel": "Switch language",
+
+  "noAccountYet": "No account yet",
+  "whoIsWatching": "Who's watching?",
+  "createOrGuest": "Create an account or watch as a guest",
+  "createCard": "Create",
+  "guestCard": "Guest",
+  "continueAsGuest": "Continue as guest",
+  "accountSemantics": "Account {name}",
+  "@accountSemantics": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "accountLockedSemantics": "Account {name}, protected by a PIN code",
+  "@accountLockedSemantics": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "pairingButton": "Pairing",
+  "backToPairingLabel": "Back to the pairing screen",
+
+  "profile": "Profile",
+  "profileMenuSemantics": "{name} profile menu",
+  "@profileMenuSemantics": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "closeMenu": "Close menu",
+  "switchProfile": "Switch profile",
+
+    "pinTitle": "PIN required",
+  "pinSubtitle": "Enter the PIN to change the age restriction.",
+  "pinWrong": "Incorrect PIN.",
+  "pinDigitSemantics": "Digit {digit}",
+  "@pinDigitSemantics": {
+    "placeholders": { "digit": { "type": "String" } }
+  },
+  "deleteDigit": "Delete",
+  "cancel": "Cancel",
+  "save": "Save",
+  "saving": "Saving...",
+  "pinWillBeAsked": "The PIN will be requested when saving.",
+    "sectionMovies": "Movies",
+  "sectionSeries": "TV shows",
+  "sectionMusic": "Music",
+  "sectionPodcasts": "Podcasts",
+  "libraryLoadError": "Unable to load the library.",
+  "noMediaForProfile": "No media available for this profile.",
+  "guestName": "Guest"
+}

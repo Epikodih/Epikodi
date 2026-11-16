@@ -1,0 +1,12 @@
+{
+  "profile": {
+    "kind": "account",
+    "id": 1,
+    "name": "Marc",
+    "icon": "avatar_03",
+    "language": "fr",
+    "age": 35,
+    "is_restricted": false
+  },
+  "active": true
+}

@@ -1,5 +1,5 @@
-pub mod source;
+pub mod degraded;
+pub mod discovery;
 pub mod local;
 pub mod smb;
-pub mod discovery;
-pub mod degraded;
+pub mod source;

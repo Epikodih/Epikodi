@@ -29,9 +29,11 @@ async fn main() {
     tracing::info!(path = %db_path.display(), "base de données prête");
 
     // --- Réseau ---
-    let host = config.server.host.clone().or_else(|| {
-        local_ip_address::local_ip().ok().map(|ip| ip.to_string())
-    });
+    let host = config
+        .server
+        .host
+        .clone()
+        .or_else(|| local_ip_address::local_ip().ok().map(|ip| ip.to_string()));
     tracing::info!(?host, "adresse annoncée aux remotes");
 
     let state = Arc::new(AppState::new(host));

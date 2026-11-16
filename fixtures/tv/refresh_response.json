@@ -1,0 +1,12 @@
+{
+  "pairing": {
+    "code": "735104",
+    "expires_at": "2026-11-07T18:40:00Z",
+    "expires_in_s": 300,
+    "attempts_left": 5,
+    "qr": {
+      "payload": "mediacenter://pair?host=192.168.1.42&port=7878&sid=a3f9c2e1",
+      "format": "text"
+    }
+  }
+}

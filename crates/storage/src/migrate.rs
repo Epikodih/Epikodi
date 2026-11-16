@@ -1,8 +1,6 @@
 use rusqlite::Connection;
 
-const MIGRATIONS: &[&str] = &[
-    include_str!("../migrations/schema.sql"),
-];
+const MIGRATIONS: &[&str] = &[include_str!("../migrations/schema.sql")];
 
 pub fn run(conn: &Connection) -> rusqlite::Result<()> {
     let current: usize = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
