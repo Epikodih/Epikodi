@@ -102,7 +102,7 @@ epikodi/
 │   ├── client/                # epikodi_client : WebSocket/HTTP, modèles, flux d'état,
 │   │   │                      #   appairage
 │   │   └── test/contract_test.dart   # charge toutes les fixtures
-│   └── design_system/         # epikodi_design_system : composants, focus unique,
+│   └── design_system/         # design_system : composants, focus unique,
 │                              #   thèmes à chaud, contrastes AA
 │
 ├── extensions/
@@ -259,7 +259,7 @@ Si le protocole change, les tests cassent des deux côtés. Le schéma SQL ne fa
 | App | `apps/tv` | `epikodi_tv` | Dart / Flutter |
 | App | `apps/remote` | `epikodi_remote` | Dart / Flutter |
 | Partagé | `packages/client` | `epikodi_client` | Dart |
-| Partagé | `packages/design_system` | `epikodi_design_system` | Dart |
+| Partagé | `packages/design_system` | `design_system` | Dart |
 
 ## Notes
 

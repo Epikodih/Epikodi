@@ -8,5 +8,5 @@ dependencies:
     sdk: flutter
   epikodi_client:
     path: ../../packages/client
-  epikodi_design_system:
+  design_system:
     path: ../../packages/design_system
