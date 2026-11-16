@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+// In the app, MaterialApp provides Directionality; the semantic label needs it.
+Widget wrap(Widget child) =>
+    Directionality(textDirection: TextDirection.ltr, child: child);
+
 AssetImage imageOf(WidgetTester tester) =>
     tester.widget<Image>(find.byType(Image)).image as AssetImage;
 
@@ -25,18 +29,18 @@ void main() {
 
   group('Gloubi widget', () {
     testWidgets('shows the still image by default', (tester) async {
-      await tester.pumpWidget(const Gloubi());
+      await tester.pumpWidget(wrap(const Gloubi()));
       expect(imageOf(tester).assetName, 'assets/mascot/mascot.png');
       expect(imageOf(tester).package, 'design_system');
     });
 
     testWidgets('shows the requested animation', (tester) async {
-      await tester.pumpWidget(const Gloubi(animation: GloubiAnimation.wave));
+      await tester.pumpWidget(wrap(const Gloubi(animation: GloubiAnimation.wave)));
       expect(imageOf(tester).assetName, 'assets/mascot/wave.webp');
     });
 
     testWidgets('entrance plays arrival then switches to idle', (tester) async {
-      await tester.pumpWidget(const Gloubi.entrance());
+      await tester.pumpWidget(wrap(const Gloubi.entrance()));
       expect(imageOf(tester).assetName, 'assets/mascot/arrival.webp');
 
       await tester.pump(const Duration(milliseconds: 1400));
