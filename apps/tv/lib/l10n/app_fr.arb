@@ -1,0 +1,117 @@
+{
+  "@@locale": "fr",
+
+  "connectingToServer": "Connexion au serveur",
+  "retry": "Réessayer",
+  "retryConnectionLabel": "Réessayer de se connecter au serveur",
+  "unexpectedError": "Erreur inattendue : {details}",
+  "@unexpectedError": {
+    "placeholders": { "details": { "type": "String" } }
+  },
+
+  "createAccount": "Créer un compte",
+  "createAccountButton": "Créer le compte",
+  "creating": "Création...",
+  "back": "Retour",
+  "name": "Nom",
+  "nameHint": "Prénom ou pseudo",
+  "enterName": "Entrez un nom.",
+  "choosePhoto": "Choisir ma photo",
+  "imagePickError": "Impossible de choisir une image ici.",
+  "avatarIcon": "Icône {number}",
+  "@avatarIcon": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "avatarIconSelected": "Icône {number}, sélectionnée",
+  "@avatarIconSelected": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "age": "Âge",
+  "ageYears": "{age} ans",
+  "@ageYears": {
+    "placeholders": { "age": { "type": "int" } }
+  },
+  "decreaseAge": "Diminuer l'âge",
+  "increaseAge": "Augmenter l'âge",
+  "language": "Langue",
+  "childProfile": "Profil enfant",
+  "childProfileSemantic": "Profil enfant (contrôle parental)",
+  "yes": "Oui",
+  "no": "Non",
+  "noContentBlocked": "Aucun contenu bloqué",
+  "noContentBlockedAdult": "Aucun contenu bloqué (18 ans et +)",
+  "blocksRatingAndAbove": "Bloque les +{rating} et plus",
+  "@blocksRatingAndAbove": {
+    "placeholders": { "rating": { "type": "int" } }
+  },
+
+  "pairingTitle": "Connecter la télécommande",
+  "pairingInstruction": "Scannez le QR code ou saisissez le code dans l’application.",
+  "newCode": "Nouveau code",
+  "newCodeCooldown": "Nouveau code ({seconds} s)",
+  "@newCodeCooldown": {
+    "placeholders": { "seconds": { "type": "int" } }
+  },
+  "newCodeSemantics": "Générer un nouveau code et un nouveau QR code",
+  "newCodeCoolingSemantics": "Nouveau code, disponible dans quelques secondes",
+  "expiresIn": "Expire dans {time}",
+  "@expiresIn": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "expiresSemantics": "Le code expire dans {minutes} minutes",
+  "@expiresSemantics": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "pairingCodeSemantics": "Code d’appairage : {code}",
+  "@pairingCodeSemantics": {
+    "placeholders": { "code": { "type": "String" } }
+  },
+  "pairingQrSemantics": "QR code d’appairage",
+  "switchLanguageLabel": "Changer de langue",
+  
+  "noAccountYet": "Aucun compte pour l’instant",
+  "whoIsWatching": "Qui regarde ?",
+  "createOrGuest": "Créez un compte ou regardez en tant qu’invité",
+  "createCard": "Créer",
+  "guestCard": "Invité",
+  "continueAsGuest": "Continuer en invité",
+  "accountSemantics": "Compte {name}",
+  "@accountSemantics": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "accountLockedSemantics": "Compte {name}, protégé par un code PIN",
+  "@accountLockedSemantics": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "pairingButton": "Appairage",
+  "backToPairingLabel": "Revenir à l’écran d’appairage",
+
+  "profile": "Profil",
+  "profileMenuSemantics": "Menu du profil {name}",
+  "@profileMenuSemantics": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "closeMenu": "Fermer le menu",
+  "switchProfile": "Changer de profil",
+
+    "pinTitle": "Code PIN requis",
+  "pinSubtitle": "Entrez le code PIN pour modifier la restriction d’âge.",
+  "pinWrong": "Code PIN incorrect.",
+  "pinDigitSemantics": "Chiffre {digit}",
+  "@pinDigitSemantics": {
+    "placeholders": { "digit": { "type": "String" } }
+  },
+  "deleteDigit": "Effacer",
+  "cancel": "Annuler",
+  "save": "Enregistrer",
+  "saving": "Enregistrement...",
+  "pinWillBeAsked": "Le code PIN sera demandé à l’enregistrement.",
+
+    "sectionMovies": "Films",
+  "sectionSeries": "Séries",
+  "sectionMusic": "Musique",
+  "sectionPodcasts": "Podcasts",
+  "libraryLoadError": "Impossible de charger la médiathèque.",
+  "noMediaForProfile": "Aucun média disponible pour ce profil.",
+  "guestName": "Invité"
+}

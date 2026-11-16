@@ -1,0 +1,9 @@
+{
+  "token": "mc_9fK2xQ7LrT3vB8nW5yZ1aD6hJ4sE0pUc",
+  "token_type": "Bearer",
+  "expires_at": "2026-12-07T18:31:12Z",
+  "device": {
+    "id": 1,
+    "name": "Pixel 7"
+  }
+}

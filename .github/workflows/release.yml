@@ -3,6 +3,11 @@ on:
   push:
     tags: ["v*"]
 
+# Version de Flutter fixée : la même en local et en CI (lint et tests
+# reproductibles). Pour monter de version : changer ici, puis `flutter upgrade`.
+env:
+  FLUTTER_VERSION: "3.44.6"
+
 permissions:
   contents: write
 
@@ -14,7 +19,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Dépendances système
         run: |
           sudo apt-get update
@@ -45,7 +53,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Build du cœur
         run: cargo build --release -p epikodi-core
       - name: Build de l'app TV
@@ -73,7 +84,10 @@ jobs:
         with: { targets: "aarch64-apple-darwin, x86_64-apple-darwin" }
       - uses: Swatinem/rust-cache@v2
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Build du cœur (universel arm64 + x86_64)
         run: |
           cargo build --release -p epikodi-core --target aarch64-apple-darwin
@@ -104,7 +118,10 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: "17" }
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
       - name: Build de la télécommande
         working-directory: apps/remote
         run: |

@@ -1,5 +1,10 @@
 name: epikodi_client
+description: Client HTTP pour l'API du serveur Epikodi.
 publish_to: none
 resolution: workspace
 environment:
   sdk: ^3.6.0
+dependencies:
+  http: ^1.2.2
+dev_dependencies:
+  test: any
