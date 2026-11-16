@@ -1,0 +1,51 @@
+name: auto-pr
+
+# Chaque push sur une branche de travail ouvre une pull request vers dev
+# (une seule par branche), avec les code owners en relecteurs.
+# La CI (ci.yml) tourne sur le même commit : ses résultats s'affichent sur la PR.
+on:
+  push:
+    branches-ignore: [main, dev]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: auto-pr-${{ github.ref }}
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ouvre la PR vers dev si elle n'existe pas
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          existing=$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url')
+          if [ -n "$existing" ]; then
+            echo "PR déjà ouverte : $existing"
+            exit 0
+          fi
+
+          if [ "$(git rev-list --count "origin/dev..HEAD")" -eq 0 ]; then
+            echo "Aucun commit par rapport à dev : pas de PR."
+            exit 0
+          fi
+
+          # Relecteurs = code owners, sauf l'auteur du push (GitHub refuse
+          # de demander une relecture à soi-même).
+          owners=$(grep -v '^#' .github/CODEOWNERS | grep -o '@[A-Za-z0-9-]*' | tr -d '@' | sort -u)
+          reviewers=$(printf '%s\n' $owners | grep -vix "$ACTOR" | paste -sd, - || true)
+
+          title=$(git log -1 --format=%s)
+          args=(--base dev --head "$BRANCH" --title "$title" --body-file .github/pull_request_template.md)
+          [ -n "$reviewers" ] && args+=(--reviewer "$reviewers")
+
+          gh pr create "${args[@]}"
