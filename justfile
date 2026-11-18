@@ -26,5 +26,13 @@ test-rust:
 test-flutter:
     dart scripts/test.dart flutter
 
+# App TV + packages partagés (comme la CI ci-tv).
+test-tv:
+    dart scripts/test.dart tv
+
+# Télécommande + packages partagés (comme la CI ci-remote).
+test-remote:
+    dart scripts/test.dart remote
+
 demo:
     ./scripts/install-demo/install.sh

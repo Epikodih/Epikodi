@@ -116,7 +116,7 @@ epikodi/
 │   ├── dev/                   # protocol.md, data-model.md, schema.sql, schema_diagramme.pdf
 │   ├── user/  extensions/  accessibility/  brand/
 ├── media-demo/                # ignoré par git
-└── .github/                   # workflows/ (ci.yml, release.yml), templates, CODEOWNERS
+└── .github/                   # workflows/ (ci-tv, ci-remote, ci-rust, auto-pr, release), templates, CODEOWNERS
 ```
 
 ---

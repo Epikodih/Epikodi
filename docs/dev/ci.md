@@ -7,16 +7,37 @@
    (une seule par branche), avec le modèle `.github/pull_request_template.md`.
    Les code owners (`.github/CODEOWNERS`) sont demandés en relecteurs,
    sauf l'auteur du push.
-3. **`ci.yml`** tourne sur le même commit. Ses résultats s'affichent sur la PR :
-   - `rust` : `cargo fmt --check`, `cargo clippy -D warnings`, tests Rust
-   - `flutter` : `flutter analyze` (lint) des apps et packages Flutter
-   - `tests TV (linux|windows|macos)` : tests Flutter de la TV et de ses packages sur les trois OS
-   - `build (linux|windows|macos)` : build du cœur et de l'app TV
+3. **Une CI par partie du projet** tourne sur le même commit, et ses résultats
+   s'affichent sur la PR. Chacune ne lance ses jobs **que si sa partie a
+   changé** (voir le tableau ci-dessous) ; sinon ses jobs sont sautés.
 4. Chaque nouveau push sur la branche relance la CI. La PR existante se met à jour.
 5. Quand la CI est verte **et** qu'un code owner a approuvé, tu merges dans `dev`.
    Le push sur `dev` relance la CI.
 6. **`release.yml`** : un tag `v*` construit les paquets (Linux, Windows, macOS,
    APK Android) et publie une release GitHub.
+
+## Les trois CI
+
+| Workflow | Se lance si ça change | Jobs |
+|---|---|---|
+| `ci-tv.yml` | `apps/tv/`, `packages/` | `tv-lint`, `tv-tests (linux/windows/macos)`, `tv-build (linux/windows/macos)` |
+| `ci-remote.yml` | `apps/remote/`, `packages/` | `remote-lint`, `remote-tests` |
+| `ci-rust.yml` | `crates/`, `extensions/`, `Cargo.*`, réglages Rust | `rust-check` (fmt, clippy, tests), `rust-build (linux/windows/macos)` |
+
+- `packages/` (client HTTP, design system) sert à la TV **et** à la
+  télécommande : le modifier lance les deux CI Flutter.
+- `fixtures/` est le contrat d'API commun : le modifier lance les trois CI.
+- Modifier un workflow relance sa propre CI.
+- Sur une branche de travail, on compare avec `dev` : tant que la branche
+  touche la TV, la CI TV tourne à chaque push (la PR reste vérifiée en entier).
+  Sur `dev` et `main`, on compare avec le push précédent.
+- Un job a une durée max (`timeout-minutes`) : un blocage échoue vite au lieu
+  de tourner jusqu'à 6 h.
+- Lancer une CI en entier à la main : onglet *Actions* → le workflow →
+  *Run workflow*.
+
+La télécommande n'a pas encore de build APK en CI : le projet Android
+(`apps/remote/android`) n'est pas dans le dépôt.
 
 ## Lancer les tests en local
 
@@ -26,8 +47,10 @@ Même commande que la CI, sans connexion réseau. Marche sous Windows
 
 ```bash
 just test            # tout
-just test-rust       # crates Rust seulement
-just test-flutter    # apps et packages Flutter seulement
+just test-tv         # app TV + packages partagés (comme ci-tv)
+just test-remote     # télécommande + packages partagés (comme ci-remote)
+just test-rust       # backend Rust (comme ci-rust)
+just test-flutter    # toutes les apps et packages Flutter
 ```
 
 Lancer un seul fichier ou un seul test :
@@ -56,9 +79,12 @@ tournent, mais rien n'empêche de merger une PR rouge.
      - *Require approvals* : 1
      - *Require review from Code Owners*
    - *Require status checks to pass before merging*, avec les checks
-     `rust`, `flutter`, `tests TV (linux)`, `tests TV (windows)`, `tests TV (macos)`,
-     `build (linux)`, `build (windows)`, `build (macos)`
-     (ils apparaissent dans la liste après un premier run de la CI)
+     `tv-lint`, `tv-tests (linux)`, `tv-tests (windows)`, `tv-tests (macos)`,
+     `tv-build (linux)`, `tv-build (windows)`, `tv-build (macos)`,
+     `remote-lint`, `remote-tests`, `rust-check`,
+     `rust-build (linux)`, `rust-build (windows)`, `rust-build (macos)`
+     (ils apparaissent dans la liste après un premier run de chaque CI).
+     Un job sauté, parce que sa partie n'a pas changé, compte comme validé.
    - *Do not allow bypassing the above settings*
 
 ## Limites connues

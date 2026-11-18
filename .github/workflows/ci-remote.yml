@@ -1,0 +1,73 @@
+name: ci-remote
+
+# CI de l'app télécommande (apps/remote) et des packages qu'elle utilise.
+# Démarre à chaque push, mais ses jobs ne tournent que si un fichier de la
+# télécommande a changé ; sinon ils sont sautés (comptés comme validés).
+# Pas encore de build APK : le projet Android (apps/remote/android) n'est
+# pas dans le dépôt. À ajouter ici quand il le sera.
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: "3.44.6"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      remote: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.remote == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ (github.ref_name == 'dev' || github.ref_name == 'main') && github.ref_name || 'dev' }}
+          filters: |
+            remote:
+              - 'apps/remote/**'
+              - 'packages/**'
+              - 'fixtures/**'
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              - 'analysis_options.yaml'
+              - 'scripts/test.dart'
+              - '.github/workflows/ci-remote.yml'
+
+  remote-lint:
+    needs: changes
+    if: needs.changes.outputs.remote == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Lint
+        run: flutter analyze packages/client packages/design_system apps/remote
+
+  # Même commande que `just test-remote`.
+  remote-tests:
+    needs: changes
+    if: needs.changes.outputs.remote == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Tests
+        run: dart scripts/test.dart remote

@@ -2,7 +2,7 @@ name: auto-pr
 
 # Chaque push sur une branche de travail ouvre une pull request vers dev
 # (une seule par branche), avec les code owners en relecteurs.
-# La CI (ci.yml) tourne sur le même commit : ses résultats s'affichent sur la PR.
+# Les CI (ci-tv, ci-remote, ci-rust) tournent sur le même commit : leurs résultats s'affichent sur la PR.
 on:
   push:
     branches-ignore: [main, dev]

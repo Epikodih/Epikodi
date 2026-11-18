@@ -1,0 +1,119 @@
+name: ci-tv
+
+# CI de l'app TV (apps/tv) et des packages qu'elle utilise (packages/).
+# Démarre à chaque push, mais ses jobs ne tournent que si un fichier de la TV
+# a changé (job « changes ») ; sinon ils sont sautés, ce qui compte comme
+# validé pour les checks obligatoires des PR (voir docs/dev/ci.md).
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+# Version de Flutter fixée : la même en local et en CI.
+env:
+  FLUTTER_VERSION: "3.44.6"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tv: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.tv == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          # Branche de travail : tout ce qui a changé depuis dev.
+          # dev ou main : ce qui a changé depuis le push précédent.
+          base: ${{ (github.ref_name == 'dev' || github.ref_name == 'main') && github.ref_name || 'dev' }}
+          filters: |
+            tv:
+              - 'apps/tv/**'
+              - 'packages/**'
+              - 'fixtures/**'
+              - 'pubspec.yaml'
+              - 'pubspec.lock'
+              - 'analysis_options.yaml'
+              - 'scripts/test.dart'
+              - '.github/workflows/ci-tv.yml'
+
+  tv-lint:
+    needs: changes
+    if: needs.changes.outputs.tv == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Lint
+        run: flutter analyze packages/client packages/design_system apps/tv
+
+  # Tests sur les trois OS du media center. Même commande que `just test-tv`.
+  tv-tests:
+    name: tv-tests (${{ matrix.target }})
+    needs: changes
+    if: needs.changes.outputs.tv == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: linux }
+          - { os: windows-latest, target: windows }
+          - { os: macos-latest, target: macos }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Tests
+        run: dart scripts/test.dart tv
+
+  tv-build:
+    name: tv-build (${{ matrix.target }})
+    needs: changes
+    if: needs.changes.outputs.tv == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: linux }
+          - { os: windows-latest, target: windows }
+          - { os: macos-latest, target: macos }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Dépendances système (Linux)
+        if: matrix.target == 'linux'
+        run: |
+          # man-db reconstruit l'index des pages de manuel à chaque install
+          # (plusieurs minutes sur les runners GitHub) : inutile en CI.
+          sudo rm -f /var/lib/man-db/auto-update
+          sudo apt-get update -o Acquire::Retries=3
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            -o Acquire::Retries=3 \
+            clang cmake ninja-build pkg-config libgtk-3-dev libmpv-dev
+      - name: Build de l'app TV
+        working-directory: apps/tv
+        run: |
+          flutter pub get
+          flutter build ${{ matrix.target }} --debug

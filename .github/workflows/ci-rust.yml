@@ -1,0 +1,76 @@
+name: ci-rust
+
+# CI du backend Rust (crates/ : cœur, API, extensions...).
+# Démarre à chaque push, mais ses jobs ne tournent que si un fichier Rust a
+# changé ; sinon ils sont sautés (comptés comme validés).
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      rust: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.rust == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: ${{ (github.ref_name == 'dev' || github.ref_name == 'main') && github.ref_name || 'dev' }}
+          filters: |
+            rust:
+              - 'crates/**'
+              - 'extensions/**'
+              - 'fixtures/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'rust-toolchain.toml'
+              - 'rustfmt.toml'
+              - 'clippy.toml'
+              - '.github/workflows/ci-rust.yml'
+
+  # Format, lint et tests. Même commande de tests que `just test-rust`.
+  rust-check:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: "clippy, rustfmt" }
+      - uses: Swatinem/rust-cache@v2
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Lint
+        run: cargo clippy --workspace -- -D warnings
+      - name: Tests (cœur + extensions)
+        run: cargo test --workspace
+
+  # Le cœur tourne sur la machine du media center : build sur les trois OS.
+  rust-build:
+    name: rust-build (${{ matrix.target }})
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: linux }
+          - { os: windows-latest, target: windows }
+          - { os: macos-latest, target: macos }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build du cœur
+        run: cargo build -p epikodi-core
