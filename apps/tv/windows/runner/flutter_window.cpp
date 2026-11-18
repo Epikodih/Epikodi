@@ -27,13 +27,13 @@ bool FlutterWindow::OnCreate() {
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
-  flutter_controller_->engine()->SetNextFrameCallback([&]() {
-    this->Show();
-  });
+  // Pas de this->Show() ici : c'est window_manager qui affiche la fenêtre
+  // (lib/window.dart), une fois la taille et le mode appliqués. L'afficher
+  // aussi à la première image laissait la surface figée au lancement
+  // (fenêtre blanche ou image en double) jusqu'au premier redimensionnement.
+  flutter_controller_->engine()->SetNextFrameCallback([&]() {});
 
-  // Flutter can complete the first frame before the "show window" callback is
-  // registered. The following call ensures a frame is pending to ensure the
-  // window is shown. It is a no-op if the first frame hasn't completed yet.
+  // Assure qu'une image est en attente au démarrage.
   flutter_controller_->ForceRedraw();
 
   return true;
