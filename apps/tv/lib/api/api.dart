@@ -1,5 +1,7 @@
 import 'package:epikodi_client/epikodi_client.dart';
 
+import '../player/playback_state.dart';
+
 /// Routes de comptes / session / médiathèque, utilisées par la TV uniquement.
 ///
 /// Ce fichier vit dans l'app TV. Il ne refait aucun HTTP : tout passe par
@@ -18,6 +20,7 @@ import 'package:epikodi_client/epikodi_client.dart';
 /// - POST  /api/profiles        -> créer un compte (devient actif)
 /// - PATCH /api/profiles/{id}   -> modifier un compte (PIN si restriction d'âge)
 /// - GET   /api/media           -> médias du compte actif
+/// - GET   /api/media/{id}/stream -> fichier à lire (via [streamSource])
 class Api {
   const Api(this._client);
 
@@ -102,6 +105,22 @@ class Api {
     final json = await _client.get('/api/media');
     final list = json['items'] as List? ?? const [];
     return list.whereType<Map<String, dynamic>>().toList();
+  }
+
+  // ---------------------------------------------------------------- lecture
+
+  /// Source de lecture d'un média (film, épisode, morceau…).
+  ///
+  /// Le moteur lit `GET /api/media/{id}/stream` lui-même (requêtes `Range`
+  /// pour l'avance rapide) : on lui donne l'URL et le token à mettre dans
+  /// l'en-tête `Authorization`, jamais dans l'URL.
+  PlaybackSource streamSource(Map<String, dynamic> media) {
+    final token = _client.token;
+    return PlaybackSource(
+      uri: '$baseUrl/api/media/${media['id']}/stream',
+      title: '${media['title'] ?? ''}',
+      headers: {if (token != null) 'Authorization': 'Bearer $token'},
+    );
   }
 
   // ----------------------------------------------------------------- interne

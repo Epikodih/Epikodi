@@ -82,6 +82,17 @@ void main() {
       }
     });
 
+    test('la route de flux est décrite (lecture, Range, erreurs)', () {
+      final route = backend.routeFor('GET', '/api/media/1/stream')!;
+      expect(route.json['partial_status'], 206);
+      expect(route.json['request_headers'],
+          containsAll(['Authorization', 'Range']));
+      expect(
+          route.errorCodes,
+          containsAll(
+              ['media_not_found', 'media_unavailable', 'not_playable']));
+    });
+
     test('refresh peut répondre tv_session_not_found (repli sur connect)', () {
       final route = backend.routeFor('POST', '/api/tv/pairing/refresh')!;
       expect(route.errorCodes, contains('tv_session_not_found'));
