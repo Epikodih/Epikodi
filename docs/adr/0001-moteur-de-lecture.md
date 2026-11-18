@@ -23,7 +23,7 @@ VLC et mpv s'appuient tous deux sur les décodeurs de FFmpeg : la couverture des
 
 On utilise **media_kit** (`media_kit`, `media_kit_video`, `media_kit_libs_video`), déjà déclaré dans `apps/tv/pubspec.yaml` et installé par la CI (`libmpv-dev`).
 
-Le moteur est caché derrière une interface `PlaybackEngine` (dossier `apps/tv/lib/features/player/`). Le reste de l'app ne connaît que cette interface.
+Le moteur est caché derrière une interface `PlaybackEngine` (dossier `apps/tv/lib/player/`). Le reste de l'app ne connaît que cette interface.
 
 ## Conséquences
 

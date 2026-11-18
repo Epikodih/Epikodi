@@ -8,4 +8,4 @@ La vue d'ensemble du monorepo est dans [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
 | Composant | Dossier | Rôle |
 |---|---|---|
-| Lecture | `apps/tv/lib/features/player/` | moteur `PlaybackEngine` (media_kit) et écran de lecture, voir [Lecture](lecture.md) |
+| Lecture | `apps/tv/lib/player/` | moteur `PlaybackEngine` (media_kit) et écran de lecture, voir [Lecture](lecture.md) |

@@ -6,7 +6,7 @@
 
 L'app TV lit les médias avec **media_kit** (libmpv), choix justifié dans l'[ADR 0001](../adr/0001-moteur-de-lecture.md).
 
-Le moteur est isolé derrière l'interface `PlaybackEngine` (`apps/tv/lib/features/player/`). Les écrans ne dépendent que de cette interface, ce qui permet :
+Le moteur est isolé derrière l'interface `PlaybackEngine` (`apps/tv/lib/player/`). Les écrans ne dépendent que de cette interface, ce qui permet :
 
 - de remplacer media_kit (par VLC par exemple) sans modifier l'interface utilisateur ;
 - de tester l'écran de lecture avec un faux moteur, sans libmpv.
