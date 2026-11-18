@@ -113,5 +113,18 @@
   "sectionPodcasts": "Podcasts",
   "libraryLoadError": "Impossible de charger la médiathèque.",
   "noMediaForProfile": "Aucun média disponible pour ce profil.",
-  "guestName": "Invité"
+  "guestName": "Invité",
+
+  "playerPlay": "Lecture",
+  "playerPause": "Pause",
+  "playerRewind": "Reculer de 10 secondes",
+  "playerForward": "Avancer de 30 secondes",
+  "playerLoading": "Chargement…",
+  "playerPaused": "En pause",
+  "playerEnded": "Lecture terminée",
+  "playerPositionLabel": "Position de lecture",
+  "playerPosition": "{position} sur {duration}",
+  "@playerPosition": { "placeholders": { "position": { "type": "String" }, "duration": { "type": "String" } } },
+  "playerError": "Lecture impossible : {details}",
+  "@playerError": { "placeholders": { "details": { "type": "String" } } }
 }

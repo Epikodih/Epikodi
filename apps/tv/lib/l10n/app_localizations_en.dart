@@ -238,4 +238,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guestName => 'Guest';
+
+  @override
+  String get playerPlay => 'Play';
+
+  @override
+  String get playerPause => 'Pause';
+
+  @override
+  String get playerRewind => 'Rewind 10 seconds';
+
+  @override
+  String get playerForward => 'Forward 30 seconds';
+
+  @override
+  String get playerLoading => 'Loading…';
+
+  @override
+  String get playerPaused => 'Paused';
+
+  @override
+  String get playerEnded => 'Playback finished';
+
+  @override
+  String get playerPositionLabel => 'Playback position';
+
+  @override
+  String playerPosition(String position, String duration) {
+    return '$position of $duration';
+  }
+
+  @override
+  String playerError(String details) {
+    return 'Unable to play: $details';
+  }
 }

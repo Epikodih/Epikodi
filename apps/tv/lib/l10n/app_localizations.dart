@@ -505,6 +505,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Invité'**
   String get guestName;
+
+  /// No description provided for @playerPlay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture'**
+  String get playerPlay;
+
+  /// No description provided for @playerPause.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pause'**
+  String get playerPause;
+
+  /// No description provided for @playerRewind.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reculer de 10 secondes'**
+  String get playerRewind;
+
+  /// No description provided for @playerForward.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avancer de 30 secondes'**
+  String get playerForward;
+
+  /// No description provided for @playerLoading.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement…'**
+  String get playerLoading;
+
+  /// No description provided for @playerPaused.
+  ///
+  /// In fr, this message translates to:
+  /// **'En pause'**
+  String get playerPaused;
+
+  /// No description provided for @playerEnded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture terminée'**
+  String get playerEnded;
+
+  /// No description provided for @playerPositionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Position de lecture'**
+  String get playerPositionLabel;
+
+  /// No description provided for @playerPosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'{position} sur {duration}'**
+  String playerPosition(String position, String duration);
+
+  /// No description provided for @playerError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lecture impossible : {details}'**
+  String playerError(String details);
 }
 
 class _AppLocalizationsDelegate

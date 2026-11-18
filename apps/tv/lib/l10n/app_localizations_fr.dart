@@ -241,4 +241,38 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get guestName => 'Invité';
+
+  @override
+  String get playerPlay => 'Lecture';
+
+  @override
+  String get playerPause => 'Pause';
+
+  @override
+  String get playerRewind => 'Reculer de 10 secondes';
+
+  @override
+  String get playerForward => 'Avancer de 30 secondes';
+
+  @override
+  String get playerLoading => 'Chargement…';
+
+  @override
+  String get playerPaused => 'En pause';
+
+  @override
+  String get playerEnded => 'Lecture terminée';
+
+  @override
+  String get playerPositionLabel => 'Position de lecture';
+
+  @override
+  String playerPosition(String position, String duration) {
+    return '$position sur $duration';
+  }
+
+  @override
+  String playerError(String details) {
+    return 'Lecture impossible : $details';
+  }
 }

@@ -112,5 +112,16 @@
   "sectionPodcasts": "Podcasts",
   "libraryLoadError": "Unable to load the library.",
   "noMediaForProfile": "No media available for this profile.",
-  "guestName": "Guest"
+  "guestName": "Guest",
+
+  "playerPlay": "Play",
+  "playerPause": "Pause",
+  "playerRewind": "Rewind 10 seconds",
+  "playerForward": "Forward 30 seconds",
+  "playerLoading": "Loading…",
+  "playerPaused": "Paused",
+  "playerEnded": "Playback finished",
+  "playerPositionLabel": "Playback position",
+  "playerPosition": "{position} of {duration}",
+  "playerError": "Unable to play: {details}"
 }
