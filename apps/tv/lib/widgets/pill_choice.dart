@@ -11,6 +11,7 @@ class PillChoice extends StatelessWidget {
     required this.onTap,
     this.semanticPrefix,
     this.compact = false,
+    this.autofocus = false,
   });
 
   final String text;
@@ -19,11 +20,15 @@ class PillChoice extends StatelessWidget {
   final String? semanticPrefix;
   final bool compact;
 
+  /// Prend le focus à l'ouverture de l'écran (ou du panneau).
+  final bool autofocus;
+
   @override
   Widget build(BuildContext context) {
     final iconSize = MediaQuery.textScalerOf(context).scale(compact ? 22 : 28);
     final base = semanticPrefix == null ? text : '$semanticPrefix : $text';
     return FocusableCard(
+      autofocus: autofocus,
       borderRadius: 999,
       onTap: onTap,
       semanticLabel: '$base, ${selected ? 'sélectionné' : 'non sélectionné'}',
@@ -42,7 +47,8 @@ class PillChoice extends StatelessWidget {
             color: AppColors.text,
           ),
           const SizedBox(width: AppSpacing.xs),
-          Text(text, style: AppText.body),
+          // Flexible : un libellé long passe à la ligne au lieu de déborder.
+          Flexible(child: Text(text, style: AppText.body)),
         ],
       ),
     );

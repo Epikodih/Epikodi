@@ -7,7 +7,9 @@ import 'package:flutter/services.dart';
 import '../l10n/app_localizations.dart';
 import 'playback_engine.dart';
 import 'playback_state.dart';
+import 'subtitle_style.dart';
 import 'time_format.dart';
+import 'track_panel.dart';
 
 /// Écran de lecture plein écran, piloté à la télécommande.
 ///
@@ -26,12 +28,21 @@ class PlayerScreen extends StatefulWidget {
     required this.engine,
     required this.source,
     this.hideDelay = const Duration(seconds: 5),
+    this.subtitleStyle = const SubtitleStyle(),
+    this.onSubtitleStyleChanged,
   });
 
   /// Moteur de lecture. L'écran l'ouvre, puis le libère en se fermant.
   final PlaybackEngine engine;
   final PlaybackSource source;
   final Duration hideDelay;
+
+  /// Apparence des sous-titres au lancement (réglée par le profil).
+  final SubtitleStyle subtitleStyle;
+
+  /// Appelé quand l'utilisateur change l'apparence dans le panneau, pour la
+  /// garder d'une lecture à l'autre.
+  final ValueChanged<SubtitleStyle>? onSubtitleStyleChanged;
 
   static const rewindStep = Duration(seconds: 10);
   static const forwardStep = Duration(seconds: 30);
@@ -41,9 +52,13 @@ class PlayerScreen extends StatefulWidget {
 }
 
 class _PlayerScreenState extends State<PlayerScreen> {
-  final _rootFocus = FocusNode(debugLabel: 'player');
+  // skipTraversal : l'écran reçoit les touches qui remontent des boutons,
+  // mais les flèches ne doivent jamais lui donner le focus.
+  final _rootFocus = FocusNode(debugLabel: 'player', skipTraversal: true);
   final _playFocus = FocusNode(debugLabel: 'player.play');
+  late final _subtitleStyle = ValueNotifier(widget.subtitleStyle);
   Timer? _hideTimer;
+  bool _panelOpen = false;
   bool _controlsVisible = true;
 
   PlaybackEngine get _engine => widget.engine;
@@ -68,6 +83,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
   void initState() {
     super.initState();
     _engine.state.addListener(_onEngineState);
+    _subtitleStyle.addListener(
+        () => widget.onSubtitleStyleChanged?.call(_subtitleStyle.value));
     _engine.open(widget.source);
     _scheduleHide();
   }
@@ -78,6 +95,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _engine.state.removeListener(_onEngineState);
     _rootFocus.dispose();
     _playFocus.dispose();
+    _subtitleStyle.dispose();
     _engine.dispose();
     super.dispose();
   }
@@ -104,7 +122,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     _hideTimer?.cancel();
     _hideTimer = Timer(widget.hideDelay, () {
       final s = _engine.state.value;
-      if (!mounted || !s.playing || s.error != null) return;
+      if (!mounted || _panelOpen || !s.playing || s.error != null) return;
       setState(() => _controlsVisible = false);
       // Le focus revient à l'écran : les flèches pilotent alors la lecture.
       _rootFocus.requestFocus();
@@ -118,6 +136,19 @@ class _PlayerScreenState extends State<PlayerScreen> {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _playFocus.requestFocus());
     }
+    _scheduleHide();
+  }
+
+  /// Panneau « Audio et sous-titres » : les contrôles restent affichés
+  /// pendant qu'il est ouvert, puis le focus revient sur Lecture / Pause.
+  Future<void> _openTrackPanel() async {
+    _panelOpen = true;
+    _hideTimer?.cancel();
+    await showTrackPanel(context,
+        engine: _engine, subtitleStyle: _subtitleStyle);
+    _panelOpen = false;
+    if (!mounted) return;
+    _playFocus.requestFocus();
     _scheduleHide();
   }
 
@@ -203,7 +234,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
           fit: StackFit.expand,
           children: [
             // La vidéo n'a pas de sens pour le lecteur d'écran.
-            ExcludeSemantics(child: _engine.buildVideo(context)),
+            ExcludeSemantics(
+              child: ValueListenableBuilder<SubtitleStyle>(
+                valueListenable: _subtitleStyle,
+                builder: (context, style, _) =>
+                    _engine.buildVideo(context, subtitleStyle: style),
+              ),
+            ),
             ValueListenableBuilder<PlaybackState>(
               valueListenable: _engine.state,
               builder: (context, state, _) => _StatusLayer(state: state),
@@ -222,6 +259,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         onTogglePlay: _engine.togglePlay,
                         onRewind: () => _seekBy(-PlayerScreen.rewindStep),
                         onForward: () => _seekBy(PlayerScreen.forwardStep),
+                        onTracks: _openTrackPanel,
                       ),
                     )
                   : const SizedBox.shrink(),
@@ -297,6 +335,7 @@ class _Controls extends StatelessWidget {
     required this.onTogglePlay,
     required this.onRewind,
     required this.onForward,
+    required this.onTracks,
   });
 
   final String title;
@@ -305,6 +344,7 @@ class _Controls extends StatelessWidget {
   final VoidCallback onTogglePlay;
   final VoidCallback onRewind;
   final VoidCallback onForward;
+  final VoidCallback onTracks;
 
   @override
   Widget build(BuildContext context) {
@@ -396,6 +436,12 @@ class _Controls extends StatelessWidget {
                         icon: Icons.forward_30,
                         label: l10n.playerForward,
                         onTap: onForward,
+                      ),
+                      const SizedBox(width: AppSpacing.xl),
+                      _ControlButton(
+                        icon: Icons.subtitles_outlined,
+                        label: l10n.playerTracks,
+                        onTap: onTracks,
                       ),
                     ],
                   ),

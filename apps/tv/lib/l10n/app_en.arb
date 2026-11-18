@@ -123,5 +123,27 @@
   "playerEnded": "Playback finished",
   "playerPositionLabel": "Playback position",
   "playerPosition": "{position} of {duration}",
-  "playerError": "Unable to play: {details}"
+  "playerError": "Unable to play: {details}",
+
+  "playerTracks": "Audio and subtitles",
+  "playerAudio": "Audio",
+  "playerSubtitles": "Subtitles",
+  "playerSubtitlesOff": "Off",
+  "playerAudioDescription": "Audio description",
+  "playerTrackNumber": "Track {number}",
+  "playerNoTrack": "No track in this file",
+  "subtitleSize": "Subtitle size",
+  "subtitleSizeSmall": "Small",
+  "subtitleSizeNormal": "Normal",
+  "subtitleSizeLarge": "Large",
+  "subtitleSizeExtraLarge": "Extra large",
+  "subtitleColor": "Text colour",
+  "subtitleColorWhite": "White",
+  "subtitleColorYellow": "Yellow",
+  "subtitleColorCyan": "Cyan",
+  "subtitleBackground": "Background",
+  "subtitleBackgroundNone": "None",
+  "subtitleBackgroundTranslucent": "Semi-transparent",
+  "subtitleBackgroundOpaque": "Black",
+  "subtitlePreview": "Subtitle preview"
 }

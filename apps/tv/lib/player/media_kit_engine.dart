@@ -7,6 +7,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 
 import 'playback_engine.dart';
 import 'playback_state.dart';
+import 'subtitle_style.dart';
 
 /// Implémentation de [PlaybackEngine] avec media_kit (libmpv).
 ///
@@ -98,10 +99,20 @@ class MediaKitEngine extends PlaybackEngine {
   }
 
   @override
-  Widget buildVideo(BuildContext context) => Video(
+  Widget buildVideo(
+    BuildContext context, {
+    SubtitleStyle subtitleStyle = const SubtitleStyle(),
+  }) =>
+      Video(
         controller: _video,
         controls: NoVideoControls,
         fill: Colors.black,
+        subtitleViewConfiguration: SubtitleViewConfiguration(
+          style: subtitleStyle.toTextStyle(),
+          // La taille de texte globale de l'app s'applique aussi aux sous-titres.
+          textScaler: MediaQuery.textScalerOf(context),
+          padding: const EdgeInsets.fromLTRB(48, 0, 48, 64),
+        ),
       );
 
   @override

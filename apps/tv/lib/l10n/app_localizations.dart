@@ -565,6 +565,132 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Lecture impossible : {details}'**
   String playerError(String details);
+
+  /// No description provided for @playerTracks.
+  ///
+  /// In fr, this message translates to:
+  /// **'Audio et sous-titres'**
+  String get playerTracks;
+
+  /// No description provided for @playerAudio.
+  ///
+  /// In fr, this message translates to:
+  /// **'Audio'**
+  String get playerAudio;
+
+  /// No description provided for @playerSubtitles.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sous-titres'**
+  String get playerSubtitles;
+
+  /// No description provided for @playerSubtitlesOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivés'**
+  String get playerSubtitlesOff;
+
+  /// No description provided for @playerAudioDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Audiodescription'**
+  String get playerAudioDescription;
+
+  /// No description provided for @playerTrackNumber.
+  ///
+  /// In fr, this message translates to:
+  /// **'Piste {number}'**
+  String playerTrackNumber(int number);
+
+  /// No description provided for @playerNoTrack.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune piste dans ce fichier'**
+  String get playerNoTrack;
+
+  /// No description provided for @subtitleSize.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taille des sous-titres'**
+  String get subtitleSize;
+
+  /// No description provided for @subtitleSizeSmall.
+  ///
+  /// In fr, this message translates to:
+  /// **'Petite'**
+  String get subtitleSizeSmall;
+
+  /// No description provided for @subtitleSizeNormal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Normale'**
+  String get subtitleSizeNormal;
+
+  /// No description provided for @subtitleSizeLarge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Grande'**
+  String get subtitleSizeLarge;
+
+  /// No description provided for @subtitleSizeExtraLarge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Très grande'**
+  String get subtitleSizeExtraLarge;
+
+  /// No description provided for @subtitleColor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Couleur du texte'**
+  String get subtitleColor;
+
+  /// No description provided for @subtitleColorWhite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Blanc'**
+  String get subtitleColorWhite;
+
+  /// No description provided for @subtitleColorYellow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jaune'**
+  String get subtitleColorYellow;
+
+  /// No description provided for @subtitleColorCyan.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cyan'**
+  String get subtitleColorCyan;
+
+  /// No description provided for @subtitleBackground.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fond'**
+  String get subtitleBackground;
+
+  /// No description provided for @subtitleBackgroundNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun'**
+  String get subtitleBackgroundNone;
+
+  /// No description provided for @subtitleBackgroundTranslucent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Semi-transparent'**
+  String get subtitleBackgroundTranslucent;
+
+  /// No description provided for @subtitleBackgroundOpaque.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noir'**
+  String get subtitleBackgroundOpaque;
+
+  /// No description provided for @subtitlePreview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aperçu des sous-titres'**
+  String get subtitlePreview;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,7 @@
 // Faux moteur de lecture : aucun libmpv, le test pilote l'état à la main.
 import 'package:epikodi_tv/player/playback_engine.dart';
 import 'package:epikodi_tv/player/playback_state.dart';
+import 'package:epikodi_tv/player/subtitle_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
@@ -11,6 +12,9 @@ class FakeEngine extends PlaybackEngine {
   final calls = <String>[];
   PlaybackSource? opened;
   bool disposed = false;
+
+  /// Dernier style de sous-titres reçu par la surface vidéo.
+  SubtitleStyle? subtitleStyle;
 
   @override
   ValueListenable<PlaybackState> get state => _state;
@@ -58,7 +62,13 @@ class FakeEngine extends PlaybackEngine {
   }
 
   @override
-  Widget buildVideo(BuildContext context) => const SizedBox.expand();
+  Widget buildVideo(
+    BuildContext context, {
+    SubtitleStyle subtitleStyle = const SubtitleStyle(),
+  }) {
+    this.subtitleStyle = subtitleStyle;
+    return const SizedBox.expand();
+  }
 
   @override
   Future<void> dispose() async => disposed = true;

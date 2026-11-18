@@ -52,9 +52,25 @@ Les contrôles se masquent après 5 s sans touche, seulement pendant la lecture.
 
 `apps/tv/test/player_screen_test.dart` utilise un faux moteur (`test/support/fake_engine.dart`) : touches, masquage des contrôles, focus, Retour, erreurs, annonces du lecteur d'écran, fenêtre minimale.
 
-## Sous-titres
+## Pistes audio et sous-titres
 
-_À compléter (#22)._
+Le bouton **Audio et sous-titres** du lecteur ouvre un panneau à droite (`apps/tv/lib/player/track_panel.dart`, #22). Les choix s'appliquent immédiatement ; Retour ferme le panneau et rend le focus à Lecture / Pause. Les contrôles restent affichés tant que le panneau est ouvert.
+
+| Section | Choix |
+|---|---|
+| Audio | pistes du fichier, une par ligne |
+| Sous-titres | Désactivés, puis les pistes du fichier |
+| Taille des sous-titres | Petite (×0,75), Normale, Grande (×1,35), Très grande (×1,75) |
+| Couleur du texte | Blanc, Jaune, Cyan |
+| Fond | Aucun, Semi-transparent (70 %), Noir |
+
+- **Libellé d'une piste** : titre et langue lus dans le fichier (`Français 5.1 · FRE`), sinon « Piste N ».
+- **Audiodescription** : détectée dans le titre de la piste (`audiodescription`, `audio description`, `descriptive`, `AD`) et écrite en toutes lettres dans le libellé (`Français · FRE · Audiodescription`).
+- **Style** (`SubtitleStyle`, `subtitle_style.dart`) : taille de base 44 px, multipliée par la taille choisie puis par la taille de texte globale de l'app. Sans fond, un contour noir garde le texte lisible. Les trois couleurs dépassent 4,5:1 sur noir.
+- **Aperçu** : une ligne d'exemple sur fond gris montre le rendu avant de refermer le panneau.
+- **Accessibilité** : chaque choix est annoncé « Sous-titres : Désactivés, sélectionné » ; l'état coché est porté par l'icône et le texte, pas par la couleur.
+
+L'écran reçoit le style initial (`subtitleStyle`) et signale chaque changement (`onSubtitleStyleChanged`). L'enregistrement dans les préférences du profil (`user.preferences.subtitles`) attend la route correspondante du cœur.
 
 ## Reprise de lecture
 
