@@ -691,6 +691,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aperçu des sous-titres'**
   String get subtitlePreview;
+
+  /// No description provided for @mediaUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indisponible'**
+  String get mediaUnavailable;
 }
 
 class _AppLocalizationsDelegate

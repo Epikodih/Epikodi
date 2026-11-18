@@ -149,5 +149,7 @@
   "subtitleBackgroundNone": "Aucun",
   "subtitleBackgroundTranslucent": "Semi-transparent",
   "subtitleBackgroundOpaque": "Noir",
-  "subtitlePreview": "Aperçu des sous-titres"
+  "subtitlePreview": "Aperçu des sous-titres",
+
+  "mediaUnavailable": "Indisponible"
 }

@@ -145,5 +145,7 @@
   "subtitleBackgroundNone": "None",
   "subtitleBackgroundTranslucent": "Semi-transparent",
   "subtitleBackgroundOpaque": "Black",
-  "subtitlePreview": "Subtitle preview"
+  "subtitlePreview": "Subtitle preview",
+
+  "mediaUnavailable": "Unavailable"
 }

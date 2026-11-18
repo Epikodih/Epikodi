@@ -5,13 +5,19 @@ import 'package:epikodi_client/epikodi_client.dart' show ApiException;
 
 import '../api/api.dart';
 import '../l10n/app_localizations.dart';
+import '../player/media_kit_engine.dart';
+import '../player/playback_engine.dart';
+import '../player/player_screen.dart';
+import '../player/subtitle_style.dart';
 import '../profile/profile_screen.dart';
 import '../widgets/profile_menu.dart';
 
 /// Médiathèque (version simple) : appelle GET /api/media et affiche les
 /// médias du profil actif en rangées d'affiches (films, séries, musique,
 /// podcasts). Le serveur filtre déjà selon l'âge du profil.
-/// Ouvrir un média (saisons, lecture) n'est pas encore branché.
+/// Entrée sur un film (ou toute « feuille » lisible) ouvre le lecteur ; Retour
+/// revient sur la même carte. Ouvrir une série ou un album n'est pas encore
+/// branché.
 ///
 /// En haut à gauche : le logo. En haut à droite : l'icône du profil, qui
 /// ouvre un menu déroulant (« Profil », « Changer de profil » ou retour à
@@ -23,6 +29,7 @@ class LibraryScreen extends StatefulWidget {
     required this.profile,
     required this.onChangeProfile,
     required this.onBackToPairing,
+    this.engineFactory = MediaKitEngine.new,
   });
 
   final Api api;
@@ -35,6 +42,10 @@ class LibraryScreen extends StatefulWidget {
 
   /// Retour à l'écran d'appairage (depuis le menu du profil).
   final VoidCallback onBackToPairing;
+
+  /// Crée un moteur de lecture neuf à chaque ouverture du lecteur
+  /// (media_kit par défaut, faux moteur dans les tests).
+  final PlaybackEngine Function() engineFactory;
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
@@ -53,6 +64,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   // Copie locale du profil : mise à jour après une modification.
   late Map<String, dynamic> _profile = widget.profile;
+
+  // Apparence des sous-titres gardée d'une lecture à l'autre (session).
+  SubtitleStyle _subtitleStyle = const SubtitleStyle();
+
+  /// Ouvre le lecteur sur [item]. Au retour, le focus revient sur sa carte.
+  void _play(Map<String, dynamic> item) {
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => PlayerScreen(
+        engine: widget.engineFactory(),
+        source: widget.api.streamSource(item),
+        subtitleStyle: _subtitleStyle,
+        onSubtitleStyleChanged: (s) => _subtitleStyle = s,
+      ),
+    ));
+  }
 
   // Accolades obligatoires : `setState(() => _future = ...)` renverrait un
   // Future, ce que setState refuse (assertion en debug, bouton sans effet).
@@ -133,6 +159,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           items: list,
                           baseUrl: widget.api.baseUrl,
                           autofocusFirst: first,
+                          onPlay: _play,
                         ));
                         first = false;
                       }
@@ -167,12 +194,14 @@ class _MediaRow extends StatelessWidget {
     required this.items,
     required this.baseUrl,
     required this.autofocusFirst,
+    required this.onPlay,
   });
 
   final String title;
   final List<Map<String, dynamic>> items;
   final String baseUrl;
   final bool autofocusFirst;
+  final ValueChanged<Map<String, dynamic>> onPlay;
 
   @override
   Widget build(BuildContext context) {
@@ -204,6 +233,7 @@ class _MediaRow extends StatelessWidget {
               baseUrl: baseUrl,
               width: cardWidth,
               autofocus: autofocusFirst && i == 0,
+              onPlay: onPlay,
             ),
           ),
         ),
@@ -219,17 +249,26 @@ class _MediaCard extends StatelessWidget {
     required this.baseUrl,
     required this.width,
     required this.autofocus,
+    required this.onPlay,
   });
 
   final Map<String, dynamic> item;
   final String baseUrl;
   final double width;
   final bool autofocus;
+  final ValueChanged<Map<String, dynamic>> onPlay;
+
+  /// Types qui ont un fichier à lire (les autres sont des conteneurs).
+  static const playableKinds = {'movie', 'episode', 'track', 'podcast_episode'};
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final title = '${item['title']}';
     final posterUrl = item['poster_url'] as String?;
+    // Fichier disparu (NAS débranché…) : la carte reste, mais ne se lit pas.
+    final missing = item['status'] == 'missing';
+    final playable = !missing && playableKinds.contains(item['kind']);
     final placeholder = Container(
       width: width,
       height: width * 1.5,
@@ -242,11 +281,12 @@ class _MediaCard extends StatelessWidget {
     return FocusableCard(
       autofocus: autofocus,
       onTap: () {
-        // À brancher : ouvrir la fiche, les saisons (parent_id) ou lancer la lecture.
+        if (playable) onPlay(item);
+        // À brancher : ouvrir la fiche ou les saisons (parent_id).
       },
       borderRadius: AppRadius.lg,
       padding: const EdgeInsets.all(AppSpacing.sm),
-      semanticLabel: title,
+      semanticLabel: missing ? '$title, ${l10n.mediaUnavailable}' : title,
       // Si la place manque, la carte se réduit au lieu de déborder.
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -275,6 +315,25 @@ class _MediaCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            // Indisponible : écrit en toutes lettres, pas seulement grisé.
+            if (missing)
+              SizedBox(
+                width: width,
+                child: Row(
+                  children: [
+                    const Icon(Icons.link_off, color: AppColors.textMuted),
+                    const SizedBox(width: AppSpacing.xs),
+                    Flexible(
+                      child: Text(
+                        l10n.mediaUnavailable,
+                        style: AppText.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),

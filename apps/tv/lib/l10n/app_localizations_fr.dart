@@ -340,4 +340,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get subtitlePreview => 'Aperçu des sous-titres';
+
+  @override
+  String get mediaUnavailable => 'Indisponible';
 }

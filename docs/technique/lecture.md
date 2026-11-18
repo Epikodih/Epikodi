@@ -72,6 +72,16 @@ Le bouton **Audio et sous-titres** du lecteur ouvre un panneau à droite (`apps/
 
 L'écran reçoit le style initial (`subtitleStyle`) et signale chaque changement (`onSubtitleStyleChanged`). L'enregistrement dans les préférences du profil (`user.preferences.subtitles`) attend la route correspondante du cœur.
 
+## Ouvrir un média depuis la médiathèque
+
+Dans la médiathèque (`apps/tv/lib/library/library_screen.dart`, #23) :
+
+- **Entrée sur un film** (ou un épisode, un morceau, un épisode de podcast) ouvre le lecteur sur `GET /api/media/{id}/stream`, avec le token dans l'en-tête.
+- **Retour** ferme le lecteur, libère le moteur et rend le focus à la carte d'origine.
+- **Média indisponible** (`status: "missing"`) : la carte affiche « Indisponible » avec une icône, le lecteur d'écran l'annonce (« Elephants Dream, Indisponible »), et Entrée ne lance rien.
+- **Séries, artistes, podcasts** : ce sont des conteneurs ; leur ouverture (saisons, albums) n'est pas encore branchée.
+- Un moteur neuf est créé à chaque lecture (`engineFactory`, media_kit par défaut). Le style des sous-titres choisi est gardé pendant la session.
+
 ## Reprise de lecture
 
 _À compléter (#24)._
