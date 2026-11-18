@@ -15,7 +15,7 @@ import 'tv_events.dart';
 /// Écran de premier lancement : la TV se connecte au serveur (connect),
 /// affiche le code d'appairage + QR, et demande un nouveau code via refresh.
 /// Dès que le serveur annonce l'appairage (flux temps réel), passe à l'écran des comptes.
-/// Tout le visuel vit dans le design system (PairingPanel, EpikodiLogo…).
+/// Tout le visuel vit dans le design system (PairingPanel, GloubiLogo…).
 /// Crée l'écoute du flux temps réel (remplaçable dans les tests).
 typedef TvEventsFactory = TvEvents Function({
   required String sessionId,
@@ -54,6 +54,10 @@ class _PairingScreenState extends State<PairingScreen> {
 
   /// Le bouton « Nouveau code » est bloqué jusqu'à cette date.
   DateTime? _cooldownUntil;
+
+  /// Au démarrage : fin du « bonjour » de Gloubi. Le code n'apparaît pas
+  /// avant, pour qu'on voie l'animation en entier (null ensuite).
+  DateTime? _greetingUntil = clock.now().add(Gloubi.greetingDuration);
 
   /// Flux temps réel du serveur : prévient la TV quand le téléphone a appairé.
   TvEvents? _events;
@@ -122,9 +126,11 @@ class _PairingScreenState extends State<PairingScreen> {
       if (!mounted) return;
       // On part de expires_in_s (durée) et non de expires_at (horloge TV ≠ serveur).
       _deadline = clock.now().add(Duration(seconds: pairing.expiresInS));
+      await _waitForGreeting();
+      if (!mounted) return;
       setState(() {
         _pairing = pairing;
-        _remaining = pairing.expiresInS;
+        _remaining = _deadline!.difference(clock.now()).inSeconds;
         _loading = false;
       });
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
@@ -144,6 +150,16 @@ class _PairingScreenState extends State<PairingScreen> {
     }
   }
 
+  /// Au premier chargement, laisse Gloubi finir son « bonjour » (arrivée +
+  /// coucou). Rien à attendre si les animations sont réduites.
+  Future<void> _waitForGreeting() async {
+    final until = _greetingUntil;
+    _greetingUntil = null;
+    if (until == null || MediaQuery.disableAnimationsOf(context)) return;
+    final left = until.difference(clock.now());
+    if (left > Duration.zero) await Future<void>.delayed(left);
+  }
+
   /// S'abonne au flux du serveur (une seule fois par session TV).
   void _listen() {
     final sid = _sessionId;
@@ -159,7 +175,8 @@ class _PairingScreenState extends State<PairingScreen> {
 
     final create = widget.createEvents;
     _events = (create != null
-        ? create(sessionId: sid, onEvent: _onEvent, onSessionLost: onSessionLost)
+        ? create(
+            sessionId: sid, onEvent: _onEvent, onSessionLost: onSessionLost)
         : TvEvents(
             baseUrl: serverUrl,
             sessionId: sid,
@@ -243,8 +260,9 @@ class _LoadingView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const EpikodiLogo(size: 96),
-          const SizedBox(height: AppSpacing.xl),
+          // Démarrage : Gloubi sort du sol et dit bonjour, puis attend.
+          Gloubi.greeting(size: MediaQuery.textScalerOf(context).scale(240)),
+          const SizedBox(height: AppSpacing.lg),
           CircularProgressIndicator(semanticsLabel: l10n.connectingToServer),
         ],
       ),
@@ -261,13 +279,14 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final iconSize = MediaQuery.textScalerOf(context).scale(80);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const EpikodiLogo(size: 64),
-        const SizedBox(height: AppSpacing.xl),
-        Icon(Icons.wifi_off, size: iconSize, color: AppColors.error),
+        // Pas de connexion ou erreur : Gloubi s'inquiète.
+        Gloubi(
+          animation: GloubiAnimation.worried,
+          size: MediaQuery.textScalerOf(context).scale(200),
+        ),
         const SizedBox(height: AppSpacing.md),
         Text(message, style: AppText.title, textAlign: TextAlign.center),
         const SizedBox(height: AppSpacing.lg),

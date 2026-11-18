@@ -112,7 +112,7 @@ class AccountsScreen extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const EpikodiLogo(size: 56),
+                    const GloubiLogo(size: 56),
                     const SizedBox(width: AppSpacing.md),
                     // Wrap : si la fenêtre est étroite, les boutons passent
                     // à la ligne au lieu de déborder.
@@ -146,8 +146,8 @@ class AccountsScreen extends StatelessWidget {
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           l10n.createOrGuest,
-                          style: AppText.body
-                              .copyWith(color: AppColors.textMuted),
+                          style:
+                              AppText.body.copyWith(color: AppColors.textMuted),
                           textAlign: TextAlign.center,
                         ),
                       ],

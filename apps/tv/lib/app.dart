@@ -9,14 +9,14 @@ import 'locale.dart';
 import 'pairing/pairing_screen.dart';
 import 'window.dart';
 
-class EpikodiTvApp extends StatefulWidget {
-  const EpikodiTvApp({super.key});
+class GloubiTvApp extends StatefulWidget {
+  const GloubiTvApp({super.key});
 
   @override
-  State<EpikodiTvApp> createState() => _EpikodiTvAppState();
+  State<GloubiTvApp> createState() => _GloubiTvAppState();
 }
 
-class _EpikodiTvAppState extends State<EpikodiTvApp> {
+class _GloubiTvAppState extends State<GloubiTvApp> {
   // Réglages d'affichage globaux (texte, QR, animations), lus dans config.dart.
   final _settings = UiSettings(
     textScale: defaultTextScale,
@@ -65,7 +65,7 @@ class _EpikodiTvAppState extends State<EpikodiTvApp> {
   Widget build(BuildContext context) => ValueListenableBuilder<Locale>(
         valueListenable: appLocale,
         builder: (context, locale, _) => MaterialApp(
-          title: 'Epikodi',
+          title: 'GloubiTV',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.dark(),
           locale: locale,

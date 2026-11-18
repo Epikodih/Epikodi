@@ -25,7 +25,8 @@ class Api {
 
   /// Adresse du serveur sans « / » final : sert à construire l'URL des
   /// affiches (`'$baseUrl$poster_url'`).
-  String get baseUrl => _client.baseUrl.toString().replaceFirst(RegExp(r'/+$'), '');
+  String get baseUrl =>
+      _client.baseUrl.toString().replaceFirst(RegExp(r'/+$'), '');
 
   // ---------------------------------------------------------------- comptes
 

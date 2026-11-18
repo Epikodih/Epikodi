@@ -178,9 +178,8 @@ class _PinDialogState extends State<PinDialog> {
     final padWidth = 3 * keySize + 2 * gap;
     // Contenu plus large que le pavé : le message d'erreur tient sans
     // être coupé. Le pavé reste centré dedans.
-    final contentWidth = padWidth > scaler.scale(400)
-        ? padWidth
-        : scaler.scale(400);
+    final contentWidth =
+        padWidth > scaler.scale(400) ? padWidth : scaler.scale(400);
 
     Widget key({
       String? label,

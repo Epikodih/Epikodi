@@ -8,5 +8,5 @@ Future<void> main() async {
   await setupWindow();
 
   // Plus tard, pour la lecture vidéo : MediaKit.ensureInitialized();
-  runApp(const EpikodiTvApp());
+  runApp(const GloubiTvApp());
 }

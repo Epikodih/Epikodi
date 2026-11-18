@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'gloubi.dart';
 import 'tokens.dart';
 
-/// Identité visuelle EpiKodi : dégradé bleu → violet, accent cyan.
+/// Identité visuelle GloubiTV : dégradé bleu → violet.
 /// Les couleurs de base (fond, texte, focus) restent dans [AppColors].
 abstract final class AppBrand {
   static const violet = Color(0xFF8B6CFF);
-  static const accent = Color(0xFF35D4E8);
 
   static const gradient = LinearGradient(
     begin: Alignment.topLeft,
@@ -18,30 +18,9 @@ abstract final class AppBrand {
   static const glow = Color(0x598B6CFF);
 }
 
-/// Pastille de marque : carré arrondi dégradé + symbole lecture.
-class EpikodiMark extends StatelessWidget {
-  const EpikodiMark({super.key, this.size = 72});
-
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        gradient: AppBrand.gradient,
-        borderRadius: BorderRadius.circular(size * 0.3),
-        boxShadow: const [BoxShadow(color: AppBrand.glow, blurRadius: 32, offset: Offset(0, 8))],
-      ),
-      child: Icon(Icons.play_arrow_rounded, size: size * 0.7, color: Colors.white),
-    );
-  }
-}
-
-/// Logo complet : pastille + mot-symbole « Epi » (léger) « Kodi » (gras, dégradé).
-class EpikodiLogo extends StatelessWidget {
-  const EpikodiLogo({super.key, this.size = 72, this.showWordmark = true});
+/// Logo complet : Gloubi (image fixe) + mot-symbole « Gloubi » (léger) « TV » (gras, dégradé).
+class GloubiLogo extends StatelessWidget {
+  const GloubiLogo({super.key, this.size = 72, this.showWordmark = true});
 
   final double size;
   final bool showWordmark;
@@ -50,19 +29,20 @@ class EpikodiLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     final fontSize = size * 0.72;
     return Semantics(
-      label: 'EpiKodi',
+      label: 'GloubiTV',
       header: true,
       excludeSemantics: true,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          EpikodiMark(size: size),
+          // Le widget Gloubi existant, en image fixe.
+          Gloubi(size: size),
           if (showWordmark) ...[
-            SizedBox(width: size * 0.3),
+            SizedBox(width: size * 0.2),
             Text.rich(
               TextSpan(children: [
                 TextSpan(
-                  text: 'Epi',
+                  text: 'Gloubi',
                   style: TextStyle(
                     fontSize: fontSize,
                     fontWeight: FontWeight.w300,
@@ -77,7 +57,7 @@ class EpikodiLogo extends StatelessWidget {
                     blendMode: BlendMode.srcIn,
                     shaderCallback: (r) => AppBrand.gradient.createShader(r),
                     child: Text(
-                      'Kodi',
+                      'TV',
                       style: TextStyle(
                         fontSize: fontSize,
                         fontWeight: FontWeight.w800,

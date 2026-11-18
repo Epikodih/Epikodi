@@ -169,6 +169,8 @@ void main() {
       });
       await pumpLibrary(tester);
       expect(find.text('Choisissez un profil.'), findsOneWidget);
+      expect(gloubiShowing('worried.png'), findsOneWidget,
+          reason: 'Gloubi inquiet');
 
       await tester.tap(find.text(fr.retry));
       await settle(tester);

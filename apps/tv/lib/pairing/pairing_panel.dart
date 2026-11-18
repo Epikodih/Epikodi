@@ -27,7 +27,7 @@ class PairingPanel extends StatelessWidget {
   /// Code à 6 chiffres.
   final String code;
 
-  /// Contenu du QR (URI epikodi://pair…).
+  /// Contenu du QR (URI d'appairage, voir fixtures/tv/connect_response.json).
   final String qrData;
 
   /// Secondes restantes avant expiration du code.
@@ -133,7 +133,7 @@ class _Info extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const EpikodiLogo(size: 56),
+        const GloubiLogo(size: 56),
         const SizedBox(height: AppSpacing.lg),
         Text(l10n.pairingTitle, style: AppText.headline),
         const SizedBox(height: AppSpacing.sm),

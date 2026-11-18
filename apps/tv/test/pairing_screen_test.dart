@@ -1,6 +1,7 @@
 import 'package:epikodi_tv/accounts/accounts_screen.dart';
 import 'package:epikodi_tv/pairing/pairing_panel.dart';
 import 'package:epikodi_tv/pairing/pairing_screen.dart';
+import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -76,7 +77,8 @@ void main() {
       await pumpPairing(tester);
 
       expect(find.text('Serveur en démarrage.'), findsOneWidget);
-      expect(find.byIcon(Icons.wifi_off), findsOneWidget);
+      expect(gloubiShowing('worried.png'), findsOneWidget,
+          reason: 'Gloubi inquiet');
       expect(find.byType(PairingPanel), findsNothing);
 
       backend.reset('POST', '/api/tv/connect');
@@ -94,6 +96,75 @@ void main() {
       await pumpPairing(tester);
       expect(
           find.textContaining(fr.unexpectedError('').trim()), findsOneWidget);
+      await unmount(tester);
+    });
+  });
+
+  group('Gloubi', () {
+    Future<void> pumpAnimated(WidgetTester tester) async {
+      await pumpTv(
+        tester,
+        PairingScreen(
+            createClient: () => fixtureClient(backend),
+            createEvents: events.create),
+        reducedMotion: false,
+      );
+    }
+
+    testWidgets(
+        'démarrage : il sort du sol, dit bonjour, puis le code apparaît',
+        (tester) async {
+      await pumpAnimated(tester);
+      expect(gloubiShowing('arrival.webp'), findsOneWidget);
+
+      // Le serveur a répondu, mais on laisse Gloubi finir son bonjour.
+      await settle(tester);
+      expect(codeShown('482916'), findsNothing);
+      await tester.pump(GloubiAnimation.arrival.duration);
+      expect(gloubiShowing('wave.webp'), findsOneWidget);
+
+      await tester.pump(Gloubi.greetingDuration);
+      await settle(tester);
+      expect(codeShown('482916'), findsOneWidget);
+      // Le compte à rebours part de la réponse du serveur, pas de la fin
+      // du bonjour : quelques secondes sont déjà passées.
+      expect(find.textContaining(fr.expiresIn('04:5')), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('« Nouveau code » : pas de nouveau bonjour', (tester) async {
+      await pumpAnimated(tester);
+      await tester.pump(Gloubi.greetingDuration);
+      await settle(tester);
+
+      await tester.tap(find.text(fr.newCode));
+      await settle(tester);
+      expect(codeShown('735104'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('serveur injoignable : Gloubi inquiet, tout de suite',
+        (tester) async {
+      backend.fail('POST', '/api/tv/connect',
+          status: 503, code: 'starting', message: 'Serveur en démarrage.');
+      await pumpAnimated(tester);
+      await settle(tester);
+      expect(gloubiShowing('worried.webp'), findsOneWidget);
+      expect(find.text('Serveur en démarrage.'), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets("animations réduites : images fixes, pas d'attente",
+        (tester) async {
+      await pumpTv(
+        tester,
+        PairingScreen(
+            createClient: () => fixtureClient(backend),
+            createEvents: events.create),
+      );
+      expect(gloubiShowing('mascot.png'), findsOneWidget);
+      await settle(tester);
+      expect(codeShown('482916'), findsOneWidget);
       await unmount(tester);
     });
   });
@@ -169,7 +240,7 @@ void main() {
 
       expect(backend.calls('POST', '/api/tv/connect'), hasLength(2));
       expect(codeShown('482916'), findsOneWidget);
-      expect(find.byIcon(Icons.wifi_off), findsNothing);
+      expect(gloubiShowing('worried.png'), findsNothing);
       await unmount(tester);
     });
 

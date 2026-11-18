@@ -17,11 +17,13 @@ final fr = lookupAppLocalizations(const Locale('fr'));
 final en = lookupAppLocalizations(const Locale('en'));
 
 /// Monte [home] dans la même enveloppe que l'app (thème, langue, réglages
-/// d'affichage), sur un écran 1920×1080, animations réduites.
+/// d'affichage), sur un écran 1920×1080, animations réduites par défaut
+/// (Gloubi affiche alors une image fixe ; voir [gloubiShowing]).
 Future<void> pumpTv(
   WidgetTester tester,
   Widget home, {
   Size size = const Size(1920, 1080),
+  bool reducedMotion = true,
 }) async {
   appLocale.value = const Locale('fr');
   tester.view
@@ -29,7 +31,7 @@ Future<void> pumpTv(
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 
-  final settings = UiSettings(reducedMotion: true);
+  final settings = UiSettings(reducedMotion: reducedMotion);
   addTearDown(settings.dispose);
 
   await tester.pumpWidget(ValueListenableBuilder<Locale>(
@@ -127,3 +129,12 @@ Future<void> tapPin(WidgetTester tester, String pin) async {
     await tester.pump();
   }
 }
+
+/// Une image de Gloubi affichant [file] (ex. `worried.png`, `arrival.webp`).
+Finder gloubiShowing(String file) => find.byWidgetPredicate(
+      (w) =>
+          w is Image &&
+          w.image is AssetImage &&
+          (w.image as AssetImage).assetName == 'assets/mascot/$file',
+      description: 'Gloubi($file)',
+    );

@@ -14,7 +14,7 @@ Future<void> setupWindow() async {
     size: Size(windowedWidth, windowedHeight),
     minimumSize: Size(minWindowWidth, minWindowHeight),
     center: true,
-    title: 'Epikodi',
+    title: 'GloubiTV',
   );
 
   await windowManager.waitUntilReadyToShow(options, () async {

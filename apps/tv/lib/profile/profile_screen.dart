@@ -192,7 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildHeader(AppLocalizations l10n, bool compact) {
     return Row(
       children: [
-        EpikodiLogo(size: compact ? 40 : 48),
+        GloubiLogo(size: compact ? 40 : 48),
         const SizedBox(width: AppSpacing.md),
         const LanguageButton(),
         const SizedBox(width: AppSpacing.md),

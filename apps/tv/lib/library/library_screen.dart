@@ -93,7 +93,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const EpikodiLogo(size: 56),
+                    const GloubiLogo(size: 56),
                     ProfileMenuButton(
                       name: name,
                       onProfile: _openProfile,
@@ -115,7 +115,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             ? (snap.error as ApiException).message
                             : l10n.libraryLoadError;
                         return _Message(
-                          icon: Icons.error_outline_rounded,
+                          worried: true,
                           text: message,
                           actionText: l10n.retry,
                           onAction: _reload,
@@ -125,9 +125,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       final rows = <Widget>[];
                       var first = true;
                       for (final entry in _sections(l10n).entries) {
-                        final list = items
-                            .where((m) => m['kind'] == entry.key)
-                            .toList();
+                        final list =
+                            items.where((m) => m['kind'] == entry.key).toList();
                         if (list.isEmpty) continue;
                         rows.add(_MediaRow(
                           title: entry.value,
@@ -287,25 +286,36 @@ class _MediaCard extends StatelessWidget {
 /// optionnel.
 class _Message extends StatelessWidget {
   const _Message({
-    required this.icon,
+    this.icon,
+    this.worried = false,
     required this.text,
     this.actionText,
     this.onAction,
   });
 
-  final IconData icon;
+  /// Icône au-dessus du texte (si [worried] est faux).
+  final IconData? icon;
+
+  /// Erreur : Gloubi inquiet à la place de l'icône.
+  final bool worried;
   final String text;
   final String? actionText;
   final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
-    final iconSize = MediaQuery.textScalerOf(context).scale(56);
+    final scaler = MediaQuery.textScalerOf(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: iconSize, color: AppColors.textMuted),
+          if (worried)
+            Gloubi(
+              animation: GloubiAnimation.worried,
+              size: scaler.scale(160),
+            )
+          else if (icon != null)
+            Icon(icon, size: scaler.scale(56), color: AppColors.textMuted),
           const SizedBox(height: AppSpacing.sm),
           Text(text, style: AppText.title, textAlign: TextAlign.center),
           if (actionText != null) ...[

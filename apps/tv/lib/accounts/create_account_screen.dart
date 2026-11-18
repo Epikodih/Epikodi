@@ -29,8 +29,12 @@ class CreateAccountScreen extends StatefulWidget {
 
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
   static const _icons = [
-    'avatar_01', 'avatar_02', 'avatar_03',
-    'avatar_04', 'avatar_05', 'avatar_06',
+    'avatar_01',
+    'avatar_02',
+    'avatar_03',
+    'avatar_04',
+    'avatar_05',
+    'avatar_06',
   ];
   static const _minAge = 3;
   static const _maxAge = 99;
@@ -145,7 +149,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   Widget _buildHeader(AppLocalizations l10n, bool compact) {
     return Row(
       children: [
-        EpikodiLogo(size: compact ? 40 : 48),
+        GloubiLogo(size: compact ? 40 : 48),
         const SizedBox(width: AppSpacing.md),
         const LanguageButton(),
         const SizedBox(width: AppSpacing.md),
@@ -210,8 +214,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           decoration: BoxDecoration(
                             color: AppColors.surfaceHigh,
                             shape: BoxShape.circle,
-                            border:
-                                Border.all(color: AppColors.text, width: 2),
+                            border: Border.all(color: AppColors.text, width: 2),
                           ),
                           child: Icon(
                             Icons.photo_camera_rounded,
