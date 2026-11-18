@@ -2,5 +2,10 @@
 name = "epikodi-domain"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
+# Entités et règles pures : aucune I/O, aucun SQL.
 [dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

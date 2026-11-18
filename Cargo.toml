@@ -17,14 +17,26 @@ epikodi-extensions = { path = "crates/extensions" }
 epikodi-api        = { path = "crates/api" }
 
 tokio = { version = "1", features = ["full"] }
+futures-util = "0.3"
 axum = { version = "0.7", features = ["ws"] }
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = "0.1"
-tracing-subscriber = "0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 rand = "0.8"
 sha2 = "0.10"
+argon2 = "0.5"
+chacha20poly1305 = "0.10"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde", "std"] }
 local-ip-address = "0.6"
-rusqlite  = { version = "0.32", features = ["bundled"] }
+mdns-sd = "0.11"
+rusqlite  = { version = "0.32", features = ["bundled", "collation", "functions"] }
 thiserror = "1"
 toml = "0.8"
+regex = "1"
+ureq = { version = "2", features = ["json"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+lofty = "0.21"
+tempfile = "3"
