@@ -30,6 +30,7 @@ Chaque fichier fixe la **forme** d'une requête ou d'une réponse (champs et typ
 | `GET /api/session` | Bearer | | `session/current.json` |
 | `POST /api/session/profile` | Bearer | `session/select_request.json` | `session/select_response.json` |
 | `GET /api/media` | Bearer + profil choisi | | `media/list.json` |
+| `GET /api/media/{id}/stream` (200 ou 206) | Bearer + profil choisi | en-tête `Range` facultatif | corps binaire (pas de fixture) |
 
 `routes.json` reprend ce tableau, avec les codes d'erreur possibles de chaque route.
 
@@ -60,6 +61,12 @@ Chaque fichier fixe la **forme** d'une requête ou d'une réponse (champs et typ
 - `match_status: "unmatched"` : le titre est le nom du fichier, sans affiche ni classification (`age_rating: null`).
 - Tri par titre (sans tenir compte de la casse) au niveau du haut, par `sort_number` dans un parent.
 
+**`GET /api/media/{id}/stream`** : sert le fichier d'une feuille (`movie`, `episode`, `track`, `podcast_episode`) pour le lecteur de la TV.
+- Le lecteur envoie le token dans l'en-tête `Authorization` (jamais dans l'URL : elle peut finir dans les journaux).
+- Avec `Range: bytes=début-fin`, le serveur répond `206` et `Content-Range` : c'est ce qui permet l'avance rapide sans tout télécharger. Sans `Range`, `200` et le fichier entier.
+- `Content-Type` est le type MIME du fichier (`video/x-matroska`, `video/mp4`, `audio/flac`…).
+- Même filtre parental que la liste : un média invisible pour le profil répond `404 media_not_found`.
+
 ## Codes d'erreur
 
 | Code | HTTP | Quand |
@@ -79,6 +86,9 @@ Chaque fichier fixe la **forme** d'une requête ou d'une réponse (champs et typ
 | `validation_failed` | 422 | Champ invalide (`details.fields`) |
 | `media_not_found` | 404 | `parent_id` inconnu |
 | `invalid_query` | 422 | Paramètre invalide (`details.fields`) |
+| `media_unavailable` | 410 | Fichier du média introuvable (`status: "missing"`, NAS débranché) |
+| `range_not_satisfiable` | 416 | `Range` hors du fichier |
+| `not_playable` | 422 | Média sans fichier (série, saison, artiste, album) |
 
 Seule exception : `GET /api/health` répond `503` avec `{"status": "starting"}` tant que la base n'est pas prête.
 

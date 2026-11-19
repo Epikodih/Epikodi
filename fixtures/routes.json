@@ -237,6 +237,45 @@
           "code": "invalid_query"
         }
       ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/media/{id}/stream",
+      "auth": "bearer + profil choisi",
+      "status": 200,
+      "partial_status": 206,
+      "request_headers": [
+        "Authorization",
+        "Range"
+      ],
+      "content_type": "type MIME du fichier (video/*, audio/*)",
+      "note": "Corps binaire, pas de fixture JSON. Gère « Range: bytes=… » (206 + Content-Range) pour l'avance rapide. Seules les feuilles (movie, episode, track, podcast_episode) ont un flux.",
+      "errors": [
+        {
+          "status": 401,
+          "code": "unauthorized"
+        },
+        {
+          "status": 403,
+          "code": "profile_required"
+        },
+        {
+          "status": 404,
+          "code": "media_not_found"
+        },
+        {
+          "status": 410,
+          "code": "media_unavailable"
+        },
+        {
+          "status": 416,
+          "code": "range_not_satisfiable"
+        },
+        {
+          "status": 422,
+          "code": "not_playable"
+        }
+      ]
     }
   ]
 }

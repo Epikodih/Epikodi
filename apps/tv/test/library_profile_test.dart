@@ -25,6 +25,22 @@ void main() {
           'http://tv.test:7878');
     });
 
+    test('streamSource : URL du flux et token dans l\'en-tête', () {
+      final client = EpikodiClientFor('http://tv.test:7878/');
+      client.http.token = 'abc';
+      final src = Api(client.http).streamSource({'id': 1, 'title': 'Big'});
+      expect(src.uri, 'http://tv.test:7878/api/media/1/stream');
+      expect(src.title, 'Big');
+      expect(src.headers, {'Authorization': 'Bearer abc'});
+      expect(src.uri, isNot(contains('abc')), reason: 'token hors de l\'URL');
+    });
+
+    test('streamSource sans token : aucun en-tête', () {
+      final src = Api(EpikodiClientFor('http://tv.test').http)
+          .streamSource({'id': 2, 'title': 'X'});
+      expect(src.headers, isEmpty);
+    });
+
     test('fetchMedia lit la clé items de media/list.json', () async {
       final items = await api.fetchMedia();
       expect(items,
