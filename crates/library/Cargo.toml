@@ -2,6 +2,15 @@
 name = "epikodi-library"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
+# Scan, reconnaissance, enrichissement. Ne connaît que les ports de domain.
 [dependencies]
 epikodi-domain.workspace = true
+regex.workspace = true
+tracing.workspace = true
+chrono.workspace = true
+
+[dev-dependencies]
+epikodi-storage.workspace = true
+tempfile.workspace = true
