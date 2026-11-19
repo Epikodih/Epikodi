@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "id": 4,
+      "position": 0,
+      "media": {
+        "id": 2,
+        "parent_id": null,
+        "kind": "movie",
+        "title": "Sintel",
+        "year": 2010,
+        "poster_url": "/api/media/2/poster",
+        "duration_s": 888,
+        "sort_number": null,
+        "age_rating": 10,
+        "match_status": "auto",
+        "status": "available"
+      }
+    }
+  ],
+  "current_item_id": 4,
+  "shuffle": false,
+  "repeat": "off"
+}

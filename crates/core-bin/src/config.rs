@@ -13,6 +13,8 @@ const PATH_ENV: &str = "EPIKODI_CONFIG";
 pub struct Config {
     pub server: ServerConfig,
     pub storage: StorageConfig,
+    pub library: LibraryConfig,
+    pub metadata: MetadataConfig,
 }
 
 #[derive(Debug, Deserialize)]
@@ -23,6 +25,10 @@ pub struct ServerConfig {
     pub port: u16,
     /// IP annoncée aux remotes (dans le QR code). Détectée si absente.
     pub host: Option<String>,
+    /// Nom annoncé en mDNS (découverte par la télécommande).
+    pub name: String,
+    /// Annonce mDNS / Zeroconf activée.
+    pub mdns: bool,
 }
 
 impl Default for ServerConfig {
@@ -31,6 +37,8 @@ impl Default for ServerConfig {
             bind: IpAddr::from([0, 0, 0, 0]),
             port: 7878,
             host: None,
+            name: "Media center".into(),
+            mdns: true,
         }
     }
 }
@@ -46,6 +54,46 @@ impl Default for StorageConfig {
     fn default() -> Self {
         Self {
             data_dir: PathBuf::from("data"),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct LibraryConfig {
+    /// Thèmes proposés (un sous-dossier par thème).
+    pub themes_dir: Option<PathBuf>,
+    /// Catalogue local d'extensions installables.
+    pub extensions_catalog: Option<PathBuf>,
+}
+
+impl Default for LibraryConfig {
+    fn default() -> Self {
+        Self {
+            themes_dir: Some(PathBuf::from("themes")),
+            extensions_catalog: Some(PathBuf::from("extensions")),
+        }
+    }
+}
+
+/// La clé TMDB n'est JAMAIS dans ce fichier : variable `TMDB_API_KEY`.
+#[derive(Debug, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct MetadataConfig {
+    /// Langue des fiches (TMDB).
+    pub language: String,
+    /// Interroger MusicBrainz pour la musique.
+    pub musicbrainz: bool,
+    /// Catalogue démo intégré (films libres), utile hors connexion.
+    pub demo_catalog: bool,
+}
+
+impl Default for MetadataConfig {
+    fn default() -> Self {
+        Self {
+            language: "fr-FR".into(),
+            musicbrainz: true,
+            demo_catalog: true,
         }
     }
 }
@@ -72,5 +120,29 @@ impl Config {
             }
             Err(e) => Err(format!("{} : {e}", path.display())),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fichier_du_depot_valide() {
+        let text = include_str!("../../../epikodi.toml");
+        let c: Config = toml::from_str(text).unwrap();
+        assert_eq!(c.server.port, 7878);
+    }
+
+    #[test]
+    fn cle_inconnue_refusee() {
+        assert!(toml::from_str::<Config>("[server]\nportt = 1").is_err());
+    }
+
+    #[test]
+    fn valeurs_par_defaut() {
+        let c: Config = toml::from_str("").unwrap();
+        assert_eq!(c.server.port, 7878);
+        assert!(c.metadata.demo_catalog);
     }
 }

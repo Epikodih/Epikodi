@@ -145,7 +145,7 @@ domain  ◄──  storage, library, sources, metadata, extensions  ◄──  a
 - `domain` ne dépend de **rien**.
 - `api` dépend de `domain`, `storage`, `library`, `extensions` ; `core-bin` de toutes.
 - `library`, `sources`, `metadata`, `extensions` ne dépendent que de `domain`. Pour lire ou écrire en base (ou appeler un fournisseur), elles utilisent les **traits de `domain/ports/`** ; `core-bin` leur injecte les vraies implémentations. On les teste donc avec de faux dépôts, sans base.
-- *À trancher en équipe :* le README place `MetadataProvider` dans `metadata`. Si on le garde là, la dépendance `library → metadata` est à noter dans un ADR (règle du README). Sinon, on déplace le trait dans `domain/ports/`.
+- `MetadataProvider` (comme `FileSource` et `ImageCache`) est un trait de `domain/ports/` : `metadata` et `sources` l'implémentent, `library` ne dépend que de `domain`.
 
 ### La base (`storage`)
 

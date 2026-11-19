@@ -1,0 +1,31 @@
+{
+  "phase": "pairing",
+  "pairing": {
+    "code": "482916",
+    "expires_at": "2026-11-07T18:35:00Z",
+    "expires_in_s": 300,
+    "attempts_left": 5,
+    "qr": {
+      "payload": "mediacenter://pair?host=192.168.1.42&port=7878&sid=a3f9c2e1",
+      "format": "text"
+    }
+  },
+  "device": null,
+  "active_profile": null,
+  "guest": {
+    "available": true,
+    "is_restricted": true
+  },
+  "can_create": true,
+  "profiles": [
+    {
+      "id": 1,
+      "name": "Marc",
+      "icon": "avatar_03",
+      "language": "fr",
+      "age": 35,
+      "is_restricted": false,
+      "requires_pin": true
+    }
+  ]
+}

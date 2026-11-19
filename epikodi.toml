@@ -1,7 +1,18 @@
 [server]
 bind = "0.0.0.0"
 port = 7878
-# host = "192.168.1.31"
+# host = "192.168.1.31"     # IP annoncée dans le QR code (détectée si absente)
+# name = "Media center"     # nom annoncé en mDNS
+# mdns = true
 
 [storage]
 data_dir = "data"
+
+# [library]
+# themes_dir = "themes"
+# extensions_catalog = "extensions"
+
+# [metadata]                 # la clé TMDB se met dans TMDB_API_KEY, jamais ici
+# language = "fr-FR"
+# musicbrainz = true
+# demo_catalog = true

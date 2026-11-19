@@ -2,7 +2,20 @@
 name = "epikodi-storage"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
+# Seule crate qui touche SQLite.
 [dependencies]
 epikodi-domain.workspace = true
 rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+rand.workspace = true
+sha2.workspace = true
+argon2.workspace = true
+chacha20poly1305.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -2,6 +2,10 @@
 name = "epikodi-metadata"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
+# Fournisseurs d'informations (API publiques) : TMDB, MusicBrainz, catalogue démo.
 [dependencies]
 epikodi-domain.workspace = true
+serde_json.workspace = true
+ureq.workspace = true

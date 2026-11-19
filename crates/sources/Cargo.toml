@@ -2,6 +2,16 @@
 name = "epikodi-sources"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
+# Accès aux fichiers : dossier local, partage réseau (SMB), découverte.
 [dependencies]
 epikodi-domain.workspace = true
+chrono.workspace = true
+sha2.workspace = true
+lofty.workspace = true
+mdns-sd.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
