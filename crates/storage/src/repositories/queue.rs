@@ -1,27 +1,58 @@
-use rusqlite::params;
+//! File d'attente. Chaque opération est faite en une seule transaction : en
+//! cas d'erreur (média inconnu...), la file reste exactement comme avant.
+
+use rusqlite::{params, Connection};
 
 use epikodi_domain::ports::QueueRepo;
 use epikodi_domain::queue::{QueueItem, QueueMode};
-use epikodi_domain::{DomainResult, Id};
+use epikodi_domain::{DomainError, DomainResult, Id};
 
 use super::{db_err, Store};
 
+fn read_queue(conn: &Connection) -> DomainResult<Vec<QueueItem>> {
+    let mut st = conn
+        .prepare("SELECT id, media_id, position FROM queue_item ORDER BY position, id")
+        .map_err(db_err)?;
+    let rows = st
+        .query_map([], |r| {
+            Ok(QueueItem {
+                id: r.get(0)?,
+                media_id: r.get(1)?,
+                position: r.get(2)?,
+            })
+        })
+        .map_err(db_err)?;
+    rows.collect::<Result<_, _>>().map_err(db_err)
+}
+
+/// Positions 0, 1, 2... dans l'ordre donné.
+fn write_order(conn: &Connection, ids_in_order: &[Id]) -> DomainResult<()> {
+    let mut st = conn
+        .prepare("UPDATE queue_item SET position = ?2 WHERE id = ?1")
+        .map_err(db_err)?;
+    for (pos, id) in ids_in_order.iter().enumerate() {
+        st.execute(params![id, pos as i64]).map_err(db_err)?;
+    }
+    Ok(())
+}
+
+/// Tous les médias existent-ils ? (vérifié avant de toucher à la file)
+fn check_media_exist(conn: &Connection, media_ids: &[Id]) -> DomainResult<()> {
+    let mut st = conn
+        .prepare("SELECT EXISTS (SELECT 1 FROM media WHERE id = ?1)")
+        .map_err(db_err)?;
+    for id in media_ids {
+        let exists: bool = st.query_row([id], |r| r.get(0)).map_err(db_err)?;
+        if !exists {
+            return Err(DomainError::NotFound { entity: "média" });
+        }
+    }
+    Ok(())
+}
+
 impl QueueRepo for Store {
     fn queue(&self) -> DomainResult<Vec<QueueItem>> {
-        let mut st = self
-            .conn
-            .prepare("SELECT id, media_id, position FROM queue_item ORDER BY position, id")
-            .map_err(db_err)?;
-        let rows = st
-            .query_map([], |r| {
-                Ok(QueueItem {
-                    id: r.get(0)?,
-                    media_id: r.get(1)?,
-                    position: r.get(2)?,
-                })
-            })
-            .map_err(db_err)?;
-        rows.collect::<Result<_, _>>().map_err(db_err)
+        read_queue(&self.conn)
     }
 
     fn enqueue(
@@ -30,62 +61,66 @@ impl QueueRepo for Store {
         mode: QueueMode,
         after: Option<Id>,
     ) -> DomainResult<Vec<QueueItem>> {
-        if mode == QueueMode::Replace {
-            self.clear_queue()?;
-        }
-        let current = self.queue()?;
-        // Rang d'insertion dans la file actuelle.
-        let insert_at = match (mode, after) {
-            (QueueMode::Next, Some(a)) => current
-                .iter()
-                .position(|i| i.id == a)
-                .map_or(current.len(), |p| p + 1),
-            (QueueMode::Next, None) => 0,
-            _ => current.len(),
-        };
-        let mut new_ids = Vec::new();
         self.transaction(|tx| {
-            let mut st = tx
-                .prepare("INSERT INTO queue_item (media_id, position) VALUES (?1, -1)")
-                .map_err(db_err)?;
-            for mid in media_ids {
-                st.execute([mid]).map_err(db_err)?;
-                new_ids.push(tx.last_insert_rowid());
+            check_media_exist(tx, media_ids)?;
+            if mode == QueueMode::Replace {
+                tx.execute("DELETE FROM queue_item", []).map_err(db_err)?;
             }
-            Ok(())
-        })?;
-        let mut order: Vec<Id> = current.iter().map(|i| i.id).collect();
-        order.splice(insert_at..insert_at, new_ids.iter().copied());
-        self.reorder_queue(&order)?;
-        Ok(self
-            .queue()?
-            .into_iter()
-            .filter(|i| new_ids.contains(&i.id))
-            .collect())
+            let current = read_queue(tx)?;
+            // Rang d'insertion dans la file actuelle.
+            let insert_at = match (mode, after) {
+                (QueueMode::Next, Some(a)) => current
+                    .iter()
+                    .position(|i| i.id == a)
+                    .map_or(current.len(), |p| p + 1),
+                (QueueMode::Next, None) => 0,
+                _ => current.len(),
+            };
+            let mut new_ids = Vec::with_capacity(media_ids.len());
+            {
+                let mut st = tx
+                    .prepare("INSERT INTO queue_item (media_id, position) VALUES (?1, -1)")
+                    .map_err(db_err)?;
+                for mid in media_ids {
+                    st.execute([mid]).map_err(db_err)?;
+                    new_ids.push(tx.last_insert_rowid());
+                }
+            }
+            let mut order: Vec<Id> = current.iter().map(|i| i.id).collect();
+            order.splice(insert_at..insert_at, new_ids.iter().copied());
+            write_order(tx, &order)?;
+            Ok(read_queue(tx)?
+                .into_iter()
+                .filter(|i| new_ids.contains(&i.id))
+                .collect())
+        })
     }
 
     fn remove_queue_item(&self, id: Id) -> DomainResult<bool> {
-        let n = self
-            .conn
-            .execute("DELETE FROM queue_item WHERE id = ?1", [id])
-            .map_err(db_err)?;
-        if n > 0 {
-            let order: Vec<Id> = self.queue()?.into_iter().map(|i| i.id).collect();
-            self.reorder_queue(&order)?;
-        }
-        Ok(n > 0)
+        self.transaction(|tx| {
+            let n = tx
+                .execute("DELETE FROM queue_item WHERE id = ?1", [id])
+                .map_err(db_err)?;
+            if n > 0 {
+                let order: Vec<Id> = read_queue(tx)?.into_iter().map(|i| i.id).collect();
+                write_order(tx, &order)?;
+            }
+            Ok(n > 0)
+        })
     }
 
     fn move_queue_item(&self, id: Id, position: i64) -> DomainResult<bool> {
-        let mut order: Vec<Id> = self.queue()?.into_iter().map(|i| i.id).collect();
-        let Some(from) = order.iter().position(|i| *i == id) else {
-            return Ok(false);
-        };
-        order.remove(from);
-        let to = (position.max(0) as usize).min(order.len());
-        order.insert(to, id);
-        self.reorder_queue(&order)?;
-        Ok(true)
+        self.transaction(|tx| {
+            let mut order: Vec<Id> = read_queue(tx)?.into_iter().map(|i| i.id).collect();
+            let Some(from) = order.iter().position(|i| *i == id) else {
+                return Ok(false);
+            };
+            order.remove(from);
+            let to = (position.max(0) as usize).min(order.len());
+            order.insert(to, id);
+            write_order(tx, &order)?;
+            Ok(true)
+        })
     }
 
     fn clear_queue(&self) -> DomainResult<()> {
@@ -97,13 +132,17 @@ impl QueueRepo for Store {
 
     fn reorder_queue(&self, ids_in_order: &[Id]) -> DomainResult<()> {
         self.transaction(|tx| {
-            let mut st = tx
-                .prepare("UPDATE queue_item SET position = ?2 WHERE id = ?1")
-                .map_err(db_err)?;
-            for (pos, id) in ids_in_order.iter().enumerate() {
-                st.execute(params![id, pos as i64]).map_err(db_err)?;
+            let mut current: Vec<Id> = read_queue(tx)?.into_iter().map(|i| i.id).collect();
+            let mut wanted = ids_in_order.to_vec();
+            current.sort_unstable();
+            wanted.sort_unstable();
+            if current != wanted {
+                return Err(DomainError::validation(
+                    "ids",
+                    "doit contenir exactement les éléments de la file",
+                ));
             }
-            Ok(())
+            write_order(tx, ids_in_order)
         })
     }
 }
@@ -134,6 +173,35 @@ mod tests {
         assert_eq!(media_order(&s), [m[0], m[3], m[1], m[2]]);
         s.enqueue(&[m[4]], QueueMode::Replace, None).unwrap();
         assert_eq!(media_order(&s), [m[4]]);
+    }
+
+    /// Régression : « remplacer » vidait la file avant de vérifier les
+    /// médias ; une erreur faisait perdre l'ancienne file.
+    #[test]
+    fn remplacer_avec_un_media_inconnu_garde_l_ancienne_file() {
+        let s = Store::in_memory();
+        let m: Vec<Id> = (0..2)
+            .map(|i| insert_test_media(&s, None, MediaKind::Movie, &format!("m{i}"), Some(0)))
+            .collect();
+        s.enqueue(&m, QueueMode::Append, None).unwrap();
+        let before = s.queue().unwrap();
+        for mode in [QueueMode::Replace, QueueMode::Append, QueueMode::Next] {
+            let err = s.enqueue(&[m[0], 9999], mode, None).unwrap_err();
+            assert!(matches!(err, DomainError::NotFound { .. }), "{mode:?}");
+            assert_eq!(s.queue().unwrap(), before, "file intacte ({mode:?})");
+        }
+    }
+
+    #[test]
+    fn reordonner_exige_les_memes_elements() {
+        let s = Store::in_memory();
+        let m: Vec<Id> = (0..2)
+            .map(|i| insert_test_media(&s, None, MediaKind::Movie, &format!("m{i}"), Some(0)))
+            .collect();
+        let items = s.enqueue(&m, QueueMode::Append, None).unwrap();
+        assert!(s.reorder_queue(&[items[0].id]).is_err());
+        s.reorder_queue(&[items[1].id, items[0].id]).unwrap();
+        assert_eq!(media_order(&s), [m[1], m[0]]);
     }
 
     #[test]

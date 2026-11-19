@@ -23,5 +23,7 @@ pub struct NewDevice {
     pub install_id: Option<String>,
     pub platform: Option<String>,
     pub token_hash: String,
+    /// Date d\'appairage (horloge du serveur).
+    pub paired_at: String,
     pub expires_at: Option<String>,
 }

@@ -42,9 +42,14 @@ pub trait ProfileRepo {
 pub trait DeviceRepo {
     fn create_device(&self, d: &NewDevice) -> DomainResult<Device>;
     /// Appareil non révoqué dont le jeton a ce hash.
-    fn find_device_by_token(&self, token_hash: &str) -> DomainResult<Option<Device>>;
+    /// Appareil dont le jeton a ce hash, ni révoqué ni expiré à la date
+    /// `now` (ISO 8601 UTC, horloge du serveur).
+    fn find_device_by_token(&self, token_hash: &str, now: &str) -> DomainResult<Option<Device>>;
     fn get_device(&self, id: Id) -> DomainResult<Option<Device>>;
-    fn list_devices(&self) -> DomainResult<Vec<Device>>;
+    /// L'appareil est-il encore autorisé (ni révoqué ni expiré) à `now` ?
+    fn device_valid(&self, id: Id, now: &str) -> DomainResult<bool>;
+    /// Appareils ni révoqués ni expirés à la date `now`.
+    fn list_devices(&self, now: &str) -> DomainResult<Vec<Device>>;
     fn revoke_device(&self, id: Id, at: &str) -> DomainResult<()>;
     /// Révoque les anciens jetons d'une même installation (ré-appairage).
     fn revoke_install(&self, install_id: &str, at: &str) -> DomainResult<()>;

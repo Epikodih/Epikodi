@@ -169,18 +169,7 @@ impl LibraryRepo for Store {
     }
 
     fn atomically(&self, f: &mut dyn FnMut() -> DomainResult<()>) -> DomainResult<()> {
-        self.conn
-            .execute_batch("SAVEPOINT scan_item")
-            .map_err(db_err)?;
-        match f() {
-            Ok(()) => self.conn.execute_batch("RELEASE scan_item").map_err(db_err),
-            Err(e) => {
-                let _ = self
-                    .conn
-                    .execute_batch("ROLLBACK TO scan_item; RELEASE scan_item");
-                Err(e)
-            }
-        }
+        self.transaction(|_| f())
     }
 
     fn set_source_scanned(
