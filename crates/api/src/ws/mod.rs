@@ -22,6 +22,8 @@ use tokio::sync::broadcast::error::RecvError;
 use epikodi_domain::protocol::{ClientMessage, Event, TvStatus};
 
 use crate::auth::{Auth, LocalOnly};
+use epikodi_domain::ports::DeviceRepo;
+
 use crate::error::{ApiError, ApiResult};
 use crate::extract::QueryParams;
 use crate::http::player::apply_command;
@@ -53,8 +55,20 @@ async fn client(socket: WebSocket, state: AppState, auth: Auth) {
         return;
     }
 
+    // Un jeton révoqué ou expiré pendant la connexion la ferme : vérifié
+    // avant chaque commande reçue, et régulièrement sinon.
+    let device_id = auth.device().map(|d| d.id);
+    let mut recheck = tokio::time::interval(RECHECK_EVERY);
+    recheck.tick().await; // le premier tick est immédiat
+
     loop {
         tokio::select! {
+            _ = recheck.tick() => {
+                if !still_authorized(&state, device_id).await {
+                    let _ = tx.send(Message::Text(unauthorized_message().to_string())).await;
+                    break;
+                }
+            },
             ev = events.recv() => match ev {
                 Ok(e) => {
                     if send(&mut tx, &e).await.is_err() {
@@ -66,6 +80,10 @@ async fn client(socket: WebSocket, state: AppState, auth: Auth) {
             },
             msg = rx.next() => match msg {
                 Some(Ok(Message::Text(text))) => {
+                    if !still_authorized(&state, device_id).await {
+                        let _ = tx.send(Message::Text(unauthorized_message().to_string())).await;
+                        break;
+                    }
                     let reply = handle(&state, &text).await;
                     if let Some(r) = reply {
                         if tx.send(Message::Text(r.to_string())).await.is_err() {
@@ -78,7 +96,26 @@ async fn client(socket: WebSocket, state: AppState, auth: Auth) {
             },
         }
     }
+    let _ = tx.send(Message::Close(None)).await;
     tracing::debug!(%who, "WebSocket fermé");
+}
+
+/// Intervalle de revérification du jeton d'une connexion ouverte.
+const RECHECK_EVERY: std::time::Duration = std::time::Duration::from_secs(30);
+
+/// La TV (locale) reste autorisée ; un appareil doit être ni révoqué ni
+/// expiré. En cas d'erreur de base, on ferme (choix sûr).
+async fn still_authorized(state: &AppState, device_id: Option<i64>) -> bool {
+    let Some(id) = device_id else { return true };
+    let now = state.now_iso();
+    state
+        .db(move |s| Ok(s.device_valid(id, &now)?))
+        .await
+        .unwrap_or(false)
+}
+
+fn unauthorized_message() -> serde_json::Value {
+    error_message(&ApiError::unauthorized())
 }
 
 async fn send<S>(tx: &mut S, e: &Event) -> Result<(), ()>

@@ -111,6 +111,9 @@ pub struct Inner {
     pub tv_changed: watch::Sender<u64>,
     pub player: Mutex<PlayerRuntime>,
     pub scan: Mutex<ScanStatus>,
+    /// Un scan a été demandé pendant qu'un autre tournait : il sera relancé
+    /// (toutes les sources) à la fin du scan en cours.
+    pub scan_pending: std::sync::atomic::AtomicBool,
     pub providers: Vec<Arc<dyn MetadataProvider>>,
     pub images: Arc<FsImageCache>,
     pub clock: Clock,
@@ -153,6 +156,7 @@ impl AppState {
             tv_changed,
             player: Mutex::new(PlayerRuntime::default()),
             scan: Mutex::new(ScanStatus::default()),
+            scan_pending: std::sync::atomic::AtomicBool::new(false),
             providers,
             images,
             clock: Arc::new(Utc::now),

@@ -40,3 +40,4 @@ ureq = { version = "2", features = ["json"] }
 zip = { version = "2", default-features = false, features = ["deflate"] }
 lofty = "0.21"
 tempfile = "3"
+tokio-tungstenite = "0.24"

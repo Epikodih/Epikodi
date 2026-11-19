@@ -45,6 +45,30 @@ use crate::views;
 pub const SAVE_EVERY: Duration = Duration::from_secs(10);
 /// Taille maximale d'un fichier envoyé depuis le téléphone.
 pub const MAX_CAST_UPLOAD: u64 = 500 * 1024 * 1024;
+/// Les fichiers envoyés sont supprimés après ce délai.
+pub const CAST_MAX_AGE: Duration = Duration::from_secs(24 * 3600);
+
+/// Supprime les fichiers envoyés depuis le téléphone plus vieux que
+/// `max_age` (le dossier ne grossit pas indéfiniment). Renvoie le nombre
+/// de fichiers supprimés.
+pub fn prune_cast_dir(dir: &std::path::Path, max_age: Duration) -> usize {
+    let Ok(read) = std::fs::read_dir(dir) else {
+        return 0;
+    };
+    let mut removed = 0;
+    for e in read.flatten() {
+        let old = e
+            .metadata()
+            .and_then(|m| m.modified())
+            .ok()
+            .and_then(|t| t.elapsed().ok())
+            .is_some_and(|age| age >= max_age);
+        if old && e.path().is_file() && std::fs::remove_file(e.path()).is_ok() {
+            removed += 1;
+        }
+    }
+    removed
+}
 
 pub struct PlayerRuntime {
     pub state: PlayerState,
@@ -439,17 +463,16 @@ pub async fn apply_command(state: &AppState, cmd: PlayerCommand) -> ApiResult<Pl
             }
             send_tv(state, TvCommand::SubtitleDelay { delay_ms });
         }
+        // Enregistré d'abord : si la base échoue, l'état ne change pas.
         C::Shuffle { enabled } => {
-            {
-                let mut p = lock(&state.player);
-                p.state.shuffle = enabled;
-                p.shuffle_seed = rand::thread_rng().gen();
-            }
             state.db(move |s| Ok(s.set_shuffle(enabled)?)).await?;
+            let mut p = lock(&state.player);
+            p.state.shuffle = enabled;
+            p.shuffle_seed = rand::thread_rng().gen();
         }
         C::Repeat { mode } => {
-            lock(&state.player).state.repeat = mode;
             state.db(move |s| Ok(s.set_repeat(mode)?)).await?;
+            lock(&state.player).state.repeat = mode;
         }
     }
     // Volume : gardé pour le prochain démarrage.
@@ -663,6 +686,8 @@ pub async fn cast_upload(
     tokio::fs::create_dir_all(&dir)
         .await
         .map_err(ApiError::internal)?;
+    let prune_dir = dir.clone();
+    let _ = tokio::task::spawn_blocking(move || prune_cast_dir(&prune_dir, CAST_MAX_AGE)).await;
     let path = dir.join(format!("{}-{name}", rand::thread_rng().gen::<u32>()));
     let mut file = tokio::fs::File::create(&path)
         .await
@@ -693,4 +718,23 @@ pub async fn cast_upload(
         name,
         path.to_string_lossy().into_owned(),
     )))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn anciens_fichiers_envoyes_supprimes() {
+        let d = tempfile::tempdir().unwrap();
+        std::fs::write(d.path().join("a.mp3"), b"x").unwrap();
+        assert_eq!(
+            prune_cast_dir(d.path(), Duration::from_secs(3600)),
+            0,
+            "récent : gardé"
+        );
+        assert_eq!(prune_cast_dir(d.path(), Duration::ZERO), 1);
+        assert!(!d.path().join("a.mp3").exists());
+        assert_eq!(prune_cast_dir(&d.path().join("absent"), Duration::ZERO), 0);
+    }
 }

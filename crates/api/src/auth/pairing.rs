@@ -6,7 +6,7 @@
 //!   blocage temporaire. 6 chiffres = 1 000 000 de combinaisons : c'est la
 //!   limitation des tentatives qui protège.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::time::Duration;
 
 use chrono::{DateTime, Utc};
@@ -56,9 +56,15 @@ impl Default for PairingConfig {
     }
 }
 
+/// Sessions TV gardées en mémoire (les plus anciennes sont oubliées : une
+/// TV qui se reconnecte en boucle ne fait pas grossir le serveur).
+pub const MAX_TV_SESSIONS: usize = 8;
+
 pub struct PairingManager {
     cfg: PairingConfig,
     sessions: HashMap<String, TvSession>,
+    /// Ordre de création, pour oublier les plus anciennes.
+    order: VecDeque<String>,
     current: Option<PairingCode>,
     locked_until: Option<DateTime<Utc>>,
 }
@@ -88,6 +94,7 @@ impl PairingManager {
         Self {
             cfg,
             sessions: HashMap::new(),
+            order: VecDeque::new(),
             current: None,
             locked_until: None,
         }
@@ -123,6 +130,12 @@ impl PairingManager {
             device,
         };
         self.sessions.insert(id.clone(), session.clone());
+        self.order.push_back(id.clone());
+        while self.order.len() > MAX_TV_SESSIONS {
+            if let Some(old) = self.order.pop_front() {
+                self.sessions.remove(&old);
+            }
+        }
         let code = self.new_code(now, &id);
         (session, code)
     }
@@ -287,6 +300,21 @@ mod tests {
             m.verify(t0(), &c.code).is_err() || r.code == c.code,
             "l'ancien code ne vaut plus"
         );
+    }
+
+    #[test]
+    fn sessions_tv_limitees() {
+        let mut m = mgr();
+        let (first, _) = m.connect(t0(), "Desktop", "linux", "0.1.0");
+        for _ in 0..MAX_TV_SESSIONS {
+            m.connect(t0(), "Desktop", "linux", "0.1.0");
+        }
+        assert_eq!(m.sessions.len(), MAX_TV_SESSIONS);
+        assert!(
+            m.session(&first.id).is_none(),
+            "la plus ancienne est oubliée"
+        );
+        assert!(m.refresh(t0(), &first.id).is_none());
     }
 
     #[test]

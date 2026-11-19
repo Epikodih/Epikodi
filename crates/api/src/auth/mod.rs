@@ -138,17 +138,10 @@ impl FromRequestParts<AppState> for Auth {
         let now_iso = state.now_iso();
         let device = state
             .db(move |s| {
-                let Some(d) = s.find_device_by_token(&hash)? else {
+                // Ni révoqué ni expiré à l'heure du serveur (vérifié en base).
+                let Some(d) = s.find_device_by_token(&hash, &now_iso)? else {
                     return Ok(None);
                 };
-                let expired = d
-                    .expires_at
-                    .as_deref()
-                    .and_then(|e| e.parse::<chrono::DateTime<chrono::Utc>>().ok())
-                    .is_some_and(|e| e <= now);
-                if expired {
-                    return Ok(None);
-                }
                 // Dernière activité, au plus une écriture par minute.
                 let stale = d
                     .last_seen_at

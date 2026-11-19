@@ -86,19 +86,21 @@ pub async fn add(
     let st = state.clone();
     let q = state
         .db(move |s| {
-            let ids = expand(s, &req.media_ids, vis)?;
-            if ids.is_empty() {
-                return Err(ApiError::conflict(
-                    "nothing_to_play",
-                    "Aucun média lisible.",
-                ));
-            }
-            let current = s.app_state()?.current_queue_item_id;
-            s.enqueue(&ids, req.mode, current)?;
-            if req.mode == QueueMode::Replace {
-                s.set_current_queue_item(None)?;
-            }
-            build_view(s, &st, vis)
+            s.transaction(|_| {
+                let ids = expand(s, &req.media_ids, vis)?;
+                if ids.is_empty() {
+                    return Err(ApiError::conflict(
+                        "nothing_to_play",
+                        "Aucun média lisible.",
+                    ));
+                }
+                let current = s.app_state()?.current_queue_item_id;
+                s.enqueue(&ids, req.mode, current)?;
+                if req.mode == QueueMode::Replace {
+                    s.set_current_queue_item(None)?;
+                }
+                build_view(s, &st, vis)
+            })
         })
         .await?;
     emit_changed(&state, &q);
@@ -110,8 +112,10 @@ pub async fn clear(ctx: Ctx, State(state): State<AppState>) -> ApiResult<StatusC
     ctx.profile()?;
     state
         .db(|s| {
-            s.clear_queue()?;
-            Ok(s.set_current_queue_item(None)?)
+            s.transaction(|_| {
+                s.clear_queue()?;
+                Ok(s.set_current_queue_item(None)?)
+            })
         })
         .await?;
     state.emit(Event::QueueChanged {

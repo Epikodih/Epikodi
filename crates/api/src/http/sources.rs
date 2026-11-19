@@ -3,6 +3,7 @@
 //! Le scan tourne en tâche de fond, sur sa propre connexion à la base
 //! (SQLite en WAL : l'API continue de répondre pendant ce temps).
 
+use std::sync::atomic::Ordering;
 use std::time::{Duration, Instant};
 
 use axum::extract::State;
@@ -87,7 +88,7 @@ pub async fn create(
     };
     let source = state.db(move |s| Ok(s.create_source(&new)?)).await?;
     tracing::info!(source = source.id, uri = %source.uri, "source ajoutée");
-    let _ = start_scan(&state, Some(source.id), None);
+    request_scan(&state, Some(source.id));
     Ok((StatusCode::CREATED, Json(views::source_view(&source))))
 }
 
@@ -101,18 +102,21 @@ pub async fn update(
     ctx.admin()?;
     let s = state
         .db(move |s| {
-            s.get_source(id)?.ok_or_else(source_not_found)?;
-            if let Some(name) = &req.name {
-                let name = name.trim();
-                if name.is_empty() || name.chars().count() > 64 {
-                    return Err(ApiError::validation("name", "entre 1 et 64 caractères"));
+            // nom et identifiants changent ensemble, ou pas du tout
+            s.transaction(|_| {
+                s.get_source(id)?.ok_or_else(source_not_found)?;
+                if let Some(name) = &req.name {
+                    let name = name.trim();
+                    if name.is_empty() || name.chars().count() > 64 {
+                        return Err(ApiError::validation("name", "entre 1 et 64 caractères"));
+                    }
+                    s.rename_source(id, name)?;
                 }
-                s.rename_source(id, name)?;
-            }
-            if let Some(creds) = &req.credentials {
-                s.set_source_credentials(id, creds.as_ref())?;
-            }
-            s.get_source(id)?.ok_or_else(source_not_found)
+                if let Some(creds) = &req.credentials {
+                    s.set_source_credentials(id, creds.as_ref())?;
+                }
+                s.get_source(id)?.ok_or_else(source_not_found)
+            })
         })
         .await?;
     Ok(Json(views::source_view(&s)))
@@ -213,9 +217,19 @@ pub fn start_scan(
         scan.clone()
     };
     let st = state.clone();
+    let rt = tokio::runtime::Handle::current();
     tokio::task::spawn_blocking(move || {
         let started = Instant::now();
-        let result = run_scan(&st, source_id, dir.as_deref());
+        // Même si le scan panique, l'état repasse « terminé » (sinon plus
+        // aucun scan ne serait possible jusqu'au redémarrage).
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            run_scan(&st, source_id, dir.as_deref())
+        }))
+        .unwrap_or_else(|_| {
+            Err(ApiError::internal(
+                "le scan s'est arrêté sur une erreur inattendue",
+            ))
+        });
         let snapshot = {
             let mut scan = lock(&st.scan);
             if let Err(e) = result {
@@ -228,8 +242,25 @@ pub fn start_scan(
         };
         tracing::info!(?snapshot, "scan terminé");
         st.emit(Event::LibraryUpdated(snapshot));
+        if st.scan_pending.swap(false, Ordering::SeqCst) {
+            let rt = rt.clone();
+            let again = st.clone();
+            rt.spawn(async move { request_scan(&again, None) });
+        }
     });
     Ok(status)
+}
+
+/// Lance un scan, ou le programme pour la fin du scan en cours : une
+/// demande n'est jamais perdue.
+pub fn request_scan(state: &AppState, source_id: Option<Id>) {
+    if start_scan(state, source_id, None).is_err() {
+        state.scan_pending.store(true, Ordering::SeqCst);
+        // le scan a pu se terminer entre-temps : on réessaie une fois
+        if !lock(&state.scan).running && state.scan_pending.swap(false, Ordering::SeqCst) {
+            let _ = start_scan(state, None, None);
+        }
+    }
 }
 
 fn run_scan(state: &AppState, source_id: Option<Id>, dir: Option<&str>) -> ApiResult<()> {
@@ -239,7 +270,22 @@ fn run_scan(state: &AppState, source_id: Option<Id>, dir: Option<&str>) -> ApiRe
         None => store.list_sources()?,
     };
     for src in sources {
-        let creds = store.source_credentials(src.id).unwrap_or(None);
+        // Identifiants illisibles (clé `secret.key` changée...) : la source
+        // est signalée en erreur, pas scannée sans identifiants en silence.
+        let creds = match store.source_credentials(src.id) {
+            Ok(c) => c,
+            Err(e) => {
+                store.set_source_scanned(src.id, SourceStatus::Error, &state.now_iso())?;
+                state.emit(Event::SourceStatus {
+                    source_id: src.id,
+                    status: SourceStatus::Error,
+                });
+                lock(&state.scan)
+                    .errors
+                    .push(format!("{} : identifiants illisibles ({e})", src.name));
+                continue;
+            }
+        };
         let file_source = match epikodi_sources::open_source(src.protocol, &src.uri, creds) {
             Ok(f) => f,
             Err(e) => {

@@ -17,7 +17,8 @@ use crate::views;
 pub async fn list(ctx: Ctx, State(state): State<AppState>) -> ApiResult<Json<DeviceList>> {
     ctx.admin()?;
     let current = ctx.auth.device().map(|d| d.id);
-    let devices = state.db(|s| Ok(s.list_devices()?)).await?;
+    let now = state.now_iso();
+    let devices = state.db(move |s| Ok(s.list_devices(&now)?)).await?;
     Ok(Json(DeviceList {
         devices: devices
             .iter()

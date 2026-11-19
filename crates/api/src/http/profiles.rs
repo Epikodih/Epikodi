@@ -82,18 +82,26 @@ pub async fn create(
     let new_profile = state
         .db(move |s| {
             let pin_hash = pin.as_deref().map(hash_pin).transpose()?;
-            Ok(s.create_profile(&NewProfile {
-                name,
-                icon: req.icon.clone(),
-                language,
-                age,
-                is_restricted: req.is_restricted,
-                pin_hash,
-            })?)
+            // Créé et rendu actif ensemble : jamais de compte créé « à moitié ».
+            s.transaction(|_| {
+                let p = s.create_profile(&NewProfile {
+                    name,
+                    icon: req.icon.clone(),
+                    language,
+                    age,
+                    is_restricted: req.is_restricted,
+                    pin_hash,
+                })?;
+                s.set_active_user(Some(p.id))?;
+                Ok::<_, ApiError>(p)
+            })
         })
         .await?;
     tracing::info!(profile = new_profile.id, "compte créé");
-    activate(&state, Selection::Account(new_profile.id)).await?;
+    state.set_selection(Selection::Account(new_profile.id));
+    state.emit(Event::ProfileChanged {
+        profile: Some(views::account_view(&new_profile)),
+    });
     Ok((
         StatusCode::CREATED,
         Json(CreateProfileResponse {

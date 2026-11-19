@@ -230,16 +230,21 @@ pub async fn pair(
         install_id: req.device.install_id.clone(),
         platform: req.device.platform.clone(),
         token_hash: hash_token(&token),
+        paired_at: iso(now),
         expires_at: Some(iso(expires)),
     };
-    let at = state.now_iso();
+    let at = iso(now);
     let device = state
         .db(move |s| {
-            // Ré-appairage de la même installation : l'ancien jeton est révoqué.
-            if let Some(install) = &new.install_id {
-                s.revoke_install(install, &at)?;
-            }
-            Ok(s.create_device(&new)?)
+            // Ré-appairage de la même installation : l'ancien jeton est
+            // révoqué. Les deux écritures sont faites ensemble : si la
+            // création échoue, l'ancien jeton reste valide.
+            Ok(s.transaction(|_| {
+                if let Some(install) = &new.install_id {
+                    s.revoke_install(install, &at)?;
+                }
+                s.create_device(&new)
+            })?)
         })
         .await?;
     let summary = views::device_summary(&device);
