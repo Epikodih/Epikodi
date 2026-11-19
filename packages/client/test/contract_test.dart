@@ -130,14 +130,20 @@ void main() {
       }
     });
 
-    test('le QR ne contient pas le code d\'appairage', () {
+    test('le QR contient le code d\'appairage (alternative au code tapé)', () {
       final json = readFixture('tv/connect_response.json', fixturesDir: dir);
       final payload = json['pairing']['qr']['payload'] as String;
-      expect(payload, isNot(contains(json['pairing']['code'])));
       final uri = Uri.parse(payload);
+      expect(uri.queryParameters['code'], json['pairing']['code']);
       expect(uri.queryParameters['host'], json['lan_ip']);
       expect(uri.queryParameters['port'], isNotEmpty);
       expect(uri.queryParameters['sid'], json['tv_session_id']);
+    });
+
+    test('nouveau code : le QR suit (refresh_response.json)', () {
+      final json = readFixture('tv/refresh_response.json', fixturesDir: dir);
+      final uri = Uri.parse(json['pairing']['qr']['payload'] as String);
+      expect(uri.queryParameters['code'], json['pairing']['code']);
     });
   });
 

@@ -10,3 +10,19 @@ dependencies:
     path: ../../packages/client
   design_system:
     path: ../../packages/design_system
+  mobile_scanner: ^7.5.0
+  shared_preferences: ^2.5.6
+  flutter_secure_storage: ^11.2.0
+  device_info_plus: ^13.3.0
+  clock: ^1.1.2
+  intl: any
+  flutter_localizations:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  http: ^1.2.2
+  flutter_lints: ^5.0.0
+flutter:
+  uses-material-design: true
+  generate: true

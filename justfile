@@ -6,6 +6,7 @@ core:
 # Lance l'app TV. Windows par défaut ; sinon : `just tv macos` ou `just tv linux`.
 tv device="windows":
     cd apps/tv && flutter run -d {{device}}
+# Lance la télécommande sur le téléphone ou l'émulateur Android branché.
 remote:
     cd apps/remote && flutter run
 setup:

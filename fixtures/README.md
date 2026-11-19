@@ -86,7 +86,7 @@ Seule exception : `GET /api/health` répond `503` avec `{"status": "starting"}` 
 
 1. La TV interroge `GET /api/tv/status` à intervalle régulier pour savoir quand l'appairage a réussi (pas de notification poussée).
 2. Créer un compte l'active aussitôt (`"active": true`).
-3. Le QR contient l'adresse, le port et un identifiant de session, jamais le code. Le schéma `mediacenter://` est provisoire.
+3. Le QR est une alternative au code tapé : il contient le code d'appairage (`code`), en plus de l'adresse, du port et de l'identifiant de session. Le téléphone connaît déjà le serveur : scanner suffit pour appairer (`POST /api/remote/pair` avec ce code). Aucun risque de plus : le même code est affiché en clair sous le QR. Le QR change donc à chaque nouveau code. Le schéma `mediacenter://` est provisoire.
 4. Le token expire au bout de 30 jours (`expires_at`, `null` s'il n'expire pas).
 5. Les médias `missing` sont renvoyés dans la liste.
 

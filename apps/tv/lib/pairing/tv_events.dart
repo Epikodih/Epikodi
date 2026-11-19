@@ -14,7 +14,11 @@ class TvEvents {
     required this.onEvent,
     this.onSessionLost,
     this.retryDelay = const Duration(seconds: 2),
+    this.path = '/api/tv/events',
   });
+
+  /// Route du flux. `/api/tv/remote` pour les touches de la télécommande.
+  final String path;
 
   final String baseUrl;
   final String sessionId;
@@ -41,8 +45,10 @@ class TvEvents {
   Future<void> _run() async {
     while (!_closed) {
       try {
-        final uri = Uri.parse('$baseUrl/api/tv/events')
-            .replace(queryParameters: {'tv_session_id': sessionId});
+        final base = Uri.parse('$baseUrl$path');
+        final uri = sessionId.isEmpty
+            ? base
+            : base.replace(queryParameters: {'tv_session_id': sessionId});
         final req = await _http.getUrl(uri);
         req.headers.set(HttpHeaders.acceptHeader, 'text/event-stream');
         final res = await req.close();

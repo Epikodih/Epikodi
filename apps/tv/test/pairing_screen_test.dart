@@ -2,6 +2,7 @@ import 'package:epikodi_tv/accounts/accounts_screen.dart';
 import 'package:epikodi_tv/pairing/pairing_panel.dart';
 import 'package:epikodi_tv/pairing/pairing_screen.dart';
 import 'package:design_system/design_system.dart';
+import 'package:epikodi_tv/remote/remote_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,7 +55,8 @@ void main() {
       expect(find.byType(PairingPanel), findsOneWidget);
       expect(codeShown('482916'), findsOneWidget);
       expect(
-          qrWith('mediacenter://pair?host=192.168.1.42&port=7878&sid=a3f9c2e1'),
+          qrWith('mediacenter://pair?host=192.168.1.42&port=7878'
+              '&sid=a3f9c2e1&code=482916'),
           findsOneWidget);
       expect(find.text(fr.expiresIn('05:00')), findsOneWidget);
       expect(find.text(fr.pairingTitle), findsOneWidget);
@@ -336,6 +338,36 @@ void main() {
           reason: 'nouveau connect');
       await unmount(tester);
     });
+  });
+
+  testWidgets(
+      'télécommande désappairée : la TV revient à l\'appairage, même depuis '
+      'la médiathèque', (tester) async {
+    await pumpPairing(tester);
+    expect(remoteBackToPairing, isNull, reason: 'déjà sur l\'appairage');
+    events.last.emit(accountsData());
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(PairingPanel), findsNothing);
+    expect(remoteBackToPairing, isNotNull);
+
+    // Un écran de plus par-dessus (comme la médiathèque).
+    Navigator.of(tester.element(find.byType(Scaffold).first))
+        .push(MaterialPageRoute<void>(
+            builder: (_) => const Scaffold(body: Text('médiathèque'))));
+    await settle(tester);
+
+    RemoteKeyHandler(GlobalKey<NavigatorState>())
+        .handle({'shortcut': 'pairing'});
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(PairingPanel), findsOneWidget);
+    expect(find.text('médiathèque'), findsNothing, reason: 'pile vidée');
+    expect(backend.calls('POST', '/api/tv/connect'), hasLength(2),
+        reason: 'nouveau connect, nouveau code');
+    expect(remoteBackToPairing, isNull);
+    await unmount(tester);
   });
 
   testWidgets('fenêtre minimale 960×540 : pas de débordement', (tester) async {

@@ -21,7 +21,7 @@
 | Workflow | Se lance si ça change | Jobs |
 |---|---|---|
 | `ci-tv.yml` | `apps/tv/`, `packages/` | `tv-lint`, `tv-tests (linux/windows/macos)`, `tv-build (linux/windows/macos)` |
-| `ci-remote.yml` | `apps/remote/`, `packages/` | `remote-lint`, `remote-tests` |
+| `ci-remote.yml` | `apps/remote/`, `packages/` | `remote-lint`, `remote-tests`, `remote-build (android)` |
 | `ci-rust.yml` | `crates/`, `extensions/`, `Cargo.*`, réglages Rust | `rust-check` (fmt, clippy, tests), `rust-build (linux/windows/macos)` |
 
 - `packages/` (client HTTP, design system) sert à la TV **et** à la
@@ -35,9 +35,6 @@
   de tourner jusqu'à 6 h.
 - Lancer une CI en entier à la main : onglet *Actions* → le workflow →
   *Run workflow*.
-
-La télécommande n'a pas encore de build APK en CI : le projet Android
-(`apps/remote/android`) n'est pas dans le dépôt.
 
 ## Lancer les tests en local
 
@@ -81,7 +78,7 @@ tournent, mais rien n'empêche de merger une PR rouge.
    - *Require status checks to pass before merging*, avec les checks
      `tv-lint`, `tv-tests (linux)`, `tv-tests (windows)`, `tv-tests (macos)`,
      `tv-build (linux)`, `tv-build (windows)`, `tv-build (macos)`,
-     `remote-lint`, `remote-tests`, `rust-check`,
+     `remote-lint`, `remote-tests`, `remote-build (android)`, `rust-check`,
      `rust-build (linux)`, `rust-build (windows)`, `rust-build (macos)`
      (ils apparaissent dans la liste après un premier run de chaque CI).
      Un job sauté, parce que sa partie n'a pas changé, compte comme validé.

@@ -1,0 +1,182 @@
+{
+  "@@locale": "fr",
+  "appTitle": "GloubiTV Remote",
+  "welcomeTitle": "Connecte-toi à ta TV",
+  "welcomeBody": "Scanne le QR code affiché sur la TV, ou tape le code à 6 chiffres.",
+  "scanQr": "Scanner le QR code de la TV",
+  "addressHint": "192.168.1.42",
+  "addressInvalid": "Adresse invalide. Exemple : 192.168.1.42 ou 192.168.1.42:7878",
+  "scanTitle": "Vise le QR code de la TV",
+  "scanNotTv": "Ce QR code ne vient pas d'une TV GloubiTV.",
+  "scanNoPermission": "GloubiTV a besoin de la caméra pour lire le QR code. Autorise-la dans les réglages, ou tape le code affiché sur la TV.",
+  "scanUnavailable": "La caméra n'est pas disponible. Tape le code affiché sur la TV.",
+  "codeSemantics": "Code d'appairage à 6 chiffres",
+  "connect": "Connecter",
+  "changeTv": "Changer de TV",
+  "pairing": "Connexion à la TV…",
+  "errorCodeInvalid": "Code incorrect. Encore {count, plural, =1{1 essai} other{{count} essais}}.",
+  "@errorCodeInvalid": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorCodeInvalidNoCount": "Code incorrect. Vérifie le code affiché sur la TV.",
+  "errorCodeExpired": "Ce code a expiré. Tape le nouveau code affiché sur la TV.",
+  "errorTooManyAttempts": "Trop d'essais. Réessaie dans {seconds} s.",
+  "@errorTooManyAttempts": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "errorTooManyAttemptsNoDelay": "Trop d'essais. Attends un peu, puis tape le nouveau code de la TV.",
+  "errorUnreachable": "Impossible de joindre la TV à l'adresse {address}. Vérifie que le téléphone et la TV sont sur le même Wi-Fi.",
+  "@errorUnreachable": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "errorUnexpected": "Une erreur est survenue : {message}",
+  "@errorUnexpected": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "retry": "Réessayer",
+  "checking": "Connexion à ta TV…",
+  "guestProfile": "Invité",
+  "cancel": "Annuler",
+  "sessionExpired": "La TV ne reconnaît plus ce téléphone. Connecte-toi de nouveau.",
+  "tvUnreachableTitle": "Ta TV ne répond pas",
+  "tvUnreachableBody": "Vérifie qu'elle est allumée et sur le même Wi-Fi que ce téléphone ({address}).",
+  "@tvUnreachableBody": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "gloubiLabel": "Gloubi, la mascotte",
+  "serverLabel": "Serveur : {address}",
+  "@serverLabel": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "changeServer": "Changer",
+  "changeServerSemantics": "Changer l'adresse du serveur, actuellement {address}",
+  "@changeServerSemantics": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "serverTitle": "Adresse du serveur",
+  "serverBody": "L'adresse du serveur du media center sur ton réseau.",
+  "save": "Enregistrer",
+  "resetServer": "Adresse par défaut ({address})",
+  "@resetServer": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "orTypeCode": "ou tape le code",
+  "qrNoCode": "QR code lu. Tape maintenant le code à 6 chiffres affiché sous le QR.",
+  "connectingServer": "Connexion au serveur…",
+  "serverOfflineTitle": "Serveur injoignable",
+  "serverOfflineBody": "Impossible de joindre le serveur à l'adresse {address}. Vérifie l'adresse et que le téléphone est sur le même Wi-Fi.",
+  "@serverOfflineBody": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "changeAddress": "Changer l'adresse",
+  "typeCodeInstead": "Taper le code",
+  "profile": "Profil",
+  "switchProfile": "Changer de profil",
+  "pairingMenu": "Appairage",
+  "profileMenuSemantics": "Menu du profil {name}",
+  "@profileMenuSemantics": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "closeMenu": "Fermer le menu",
+  "noProfile": "Choisir un profil",
+  "keyUp": "Haut",
+  "keyDown": "Bas",
+  "keyLeft": "Gauche",
+  "keyRight": "Droite",
+  "keyOk": "OK",
+  "keyBack": "Retour",
+  "keyHome": "Accueil",
+  "whoIsWatching": "Qui regarde ?",
+  "currentProfile": "Profil actuel",
+  "profileLocked": "Protégé par un code PIN",
+  "pinTitle": "Code PIN de {name}",
+  "@pinTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pinSemantics": "Code PIN à 4 chiffres",
+  "pinInvalid": "PIN incorrect. Encore {count, plural, =1{1 essai} other{{count} essais}}.",
+  "@pinInvalid": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinInvalidNoCount": "PIN incorrect.",
+  "pinLocked": "Trop d'essais. Réessaie dans {seconds} s.",
+  "@pinLocked": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "pinLockedNoDelay": "Trop d'essais. Réessaie plus tard.",
+  "profilesError": "Impossible de charger les comptes.",
+  "pairingConfirmTitle": "Revenir à l'appairage ?",
+  "pairingConfirmBody": "La TV revient à son écran d'appairage et ce téléphone s'en déconnecte. Il faudra de nouveau scanner le QR code ou taper le code.",
+  "confirm": "Continuer",
+  "infoMenu": "Infos",
+  "infoTitle": "Infos",
+  "infoServer": "Serveur",
+  "infoPhone": "Ce téléphone",
+  "infoProfile": "Profil actif",
+  "infoVersion": "Version de l'app",
+  "changeServerConfirmTitle": "Changer de serveur ?",
+  "changeServerConfirmBody": "Ce téléphone sera déconnecté de la TV actuelle, puis se connectera au nouveau serveur.",
+  "keyboardTitle": "Écrire sur la TV",
+  "keyboardDone": "Valider",
+  "keyboardClose": "Fermer le clavier",
+  "languageToggle": "Langue : passer la TV et le téléphone en {language}",
+  "@languageToggle": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  }
+}

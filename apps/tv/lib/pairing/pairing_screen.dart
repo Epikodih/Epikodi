@@ -9,6 +9,7 @@ import '../accounts/accounts_flow.dart';
 import '../api/api.dart';
 import '../config.dart';
 import '../l10n/app_localizations.dart';
+import '../remote/remote_keys.dart';
 import 'pairing_panel.dart';
 import 'tv_events.dart';
 
@@ -66,6 +67,7 @@ class _PairingScreenState extends State<PairingScreen> {
   @override
   void initState() {
     super.initState();
+    remoteBackToPairing = null; // déjà sur l'appairage
     _load();
   }
 
@@ -196,7 +198,24 @@ class _PairingScreenState extends State<PairingScreen> {
     final client = _client;
     _handedOff = true;
 
-    Navigator.of(context).pushReplacement(
+    // La télécommande peut ramener ici (« Appairage » sur le téléphone),
+    // quel que soit l'écran affiché : on vide toute la pile.
+    final navigator = Navigator.of(context);
+    remoteBackToPairing = () {
+      remoteBackToPairing = null;
+      client.close();
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => PairingScreen(
+            createClient: widget.createClient,
+            createEvents: widget.createEvents,
+          ),
+        ),
+        (_) => false,
+      );
+    };
+
+    navigator.pushReplacement(
       MaterialPageRoute(
         builder: (ctx) => AccountsFlow(
           api: Api(client.http),

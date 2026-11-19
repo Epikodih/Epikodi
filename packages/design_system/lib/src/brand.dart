@@ -20,10 +20,19 @@ abstract final class AppBrand {
 
 /// Logo complet : Gloubi (image fixe) + mot-symbole « Gloubi » (léger) « TV » (gras, dégradé).
 class GloubiLogo extends StatelessWidget {
-  const GloubiLogo({super.key, this.size = 72, this.showWordmark = true});
+  const GloubiLogo({
+    super.key,
+    this.size = 72,
+    this.showWordmark = true,
+    this.mascot,
+  });
 
   final double size;
   final bool showWordmark;
+
+  /// Remplace le Gloubi fixe (ex. `Gloubi.hello(size: size)` pour un logo
+  /// qui fait coucou).
+  final Widget? mascot;
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +44,8 @@ class GloubiLogo extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Le widget Gloubi existant, en image fixe.
-          Gloubi(size: size),
+          // Le widget Gloubi existant, en image fixe par défaut.
+          mascot ?? Gloubi(size: size),
           if (showWordmark) ...[
             SizedBox(width: size * 0.2),
             Text.rich(

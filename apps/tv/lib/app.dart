@@ -7,6 +7,7 @@ import 'config.dart';
 import 'l10n/app_localizations.dart';
 import 'locale.dart';
 import 'pairing/pairing_screen.dart';
+import 'remote/remote_keys.dart';
 import 'window.dart';
 
 class GloubiTvApp extends StatefulWidget {
@@ -18,6 +19,9 @@ class GloubiTvApp extends StatefulWidget {
 
 class _GloubiTvAppState extends State<GloubiTvApp> {
   // Réglages d'affichage globaux (texte, QR, animations), lus dans config.dart.
+  /// Pour « Retour » et « Accueil » de la télécommande.
+  final _navigator = GlobalKey<NavigatorState>();
+
   final _settings = UiSettings(
     textScale: defaultTextScale,
     qrScale: defaultQrScale,
@@ -65,6 +69,7 @@ class _GloubiTvAppState extends State<GloubiTvApp> {
   Widget build(BuildContext context) => ValueListenableBuilder<Locale>(
         valueListenable: appLocale,
         builder: (context, locale, _) => MaterialApp(
+          navigatorKey: _navigator,
           title: 'GloubiTV',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.dark(),
@@ -73,7 +78,12 @@ class _GloubiTvAppState extends State<GloubiTvApp> {
           supportedLocales: AppLocalizations.supportedLocales,
           builder: (context, child) => AppUiScope(
             settings: _settings,
-            child: child ?? const SizedBox.shrink(),
+            // Les flèches de la télécommande déplacent le focus de la TV.
+            child: RemoteKeyListener(
+              baseUrl: serverUrl,
+              navigator: _navigator,
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
           home: const PairingScreen(),
         ),

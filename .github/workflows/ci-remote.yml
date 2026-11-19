@@ -3,8 +3,6 @@ name: ci-remote
 # CI de l'app télécommande (apps/remote) et des packages qu'elle utilise.
 # Démarre à chaque push, mais ses jobs ne tournent que si un fichier de la
 # télécommande a changé ; sinon ils sont sautés (comptés comme validés).
-# Pas encore de build APK : le projet Android (apps/remote/android) n'est
-# pas dans le dépôt. À ajouter ici quand il le sera.
 on:
   push:
     branches: ["**"]
@@ -71,3 +69,25 @@ jobs:
           cache: true
       - name: Tests
         run: dart scripts/test.dart remote
+
+  # APK Android de debug : vérifie que le projet Android compile.
+  remote-build:
+    name: remote-build (android)
+    needs: changes
+    if: needs.changes.outputs.remote == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17", cache: gradle }
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Build de l'APK
+        working-directory: apps/remote
+        run: |
+          flutter pub get
+          flutter build apk --debug

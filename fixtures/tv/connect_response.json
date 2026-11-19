@@ -7,7 +7,7 @@
     "expires_in_s": 300,
     "attempts_left": 5,
     "qr": {
-      "payload": "mediacenter://pair?host=192.168.1.42&port=7878&sid=a3f9c2e1",
+      "payload": "mediacenter://pair?host=192.168.1.42&port=7878&sid=a3f9c2e1&code=482916",
       "format": "text"
     }
   }
