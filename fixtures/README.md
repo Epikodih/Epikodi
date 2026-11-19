@@ -30,6 +30,14 @@ Chaque fichier fixe la **forme** d'une requête ou d'une réponse (champs et typ
 | `GET /api/session` | Bearer | | `session/current.json` |
 | `POST /api/session/profile` | Bearer | `session/select_request.json` | `session/select_response.json` |
 | `GET /api/media` | Bearer + profil choisi | | `media/list.json` |
+| `GET /api/media/{id}` | Bearer + profil choisi | | `media/detail.json` |
+| `GET /api/player` | Bearer | | `player/state.json` |
+| `POST /api/player/command` | Bearer | `player/command_request.json` | `player/state.json` |
+| `GET /api/queue` | Bearer + profil choisi | | `queue/list.json` |
+| `POST /api/queue` | Bearer + profil choisi | `queue/add_request.json` | `queue/list.json` |
+
+Les autres routes (favoris, listes, sources, extensions, WebSocket...) sont
+décrites dans `docs/dev/protocol.md`.
 
 `routes.json` reprend ce tableau, avec les codes d'erreur possibles de chaque route.
 
@@ -77,8 +85,12 @@ Chaque fichier fixe la **forme** d'une requête ou d'une réponse (champs et typ
 | `profile_not_found` | 404 | Profil inconnu |
 | `profile_name_taken` | 409 | Nom déjà pris |
 | `validation_failed` | 422 | Champ invalide (`details.fields`) |
-| `media_not_found` | 404 | `parent_id` inconnu |
+| `media_not_found` | 404 | `parent_id` inconnu, ou média masqué par le contrôle parental |
 | `invalid_query` | 422 | Paramètre invalide (`details.fields`) |
+| `localhost_only` | 403 | Route réservée à l'app TV (accès local) |
+| `admin_required` | 403 | Action réservée à un compte non restreint |
+
+Liste complète : `docs/dev/protocol.md`.
 
 Seule exception : `GET /api/health` répond `503` avec `{"status": "starting"}` tant que la base n'est pas prête.
 
@@ -90,8 +102,10 @@ Seule exception : `GET /api/health` répond `503` avec `{"status": "starting"}` 
 4. Le token expire au bout de 30 jours (`expires_at`, `null` s'il n'expire pas).
 5. Les médias `missing` sont renvoyés dans la liste.
 
-## Écarts avec `schema.sql` à régler
+## Écarts avec `schema.sql` (réglés)
 
-- **PIN par compte** : le document le prévoit pour chaque compte non restreint. Le schéma n'a qu'un `parental_pin_hash` global dans `app_state` et rien dans `user`. Il faut ajouter `user.pin_hash`, ou revenir à un PIN global.
-- **Âge à la création** : `user.age` est obligatoire dans le schéma, mais le document ne demande que le nom et la restriction. Les fixtures contiennent `age`.
-- **Appareil** : le document parle d'un `install_id` et d'une expiration du token. `device` n'a ni l'un ni l'autre.
+La migration `crates/storage/migrations/0002_profiles_devices.sql` ajoute :
+
+- **PIN par compte** : `user.pin_hash` (argon2). `app_state.parental_pin_hash` n'est plus utilisé.
+- **Âge à la création** : obligatoire, comme dans les fixtures.
+- **Appareil** : `device.install_id`, `platform`, `expires_at`, `last_seen_at`.

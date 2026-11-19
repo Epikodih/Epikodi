@@ -1,0 +1,31 @@
+{
+  "media": {
+    "id": 2,
+    "parent_id": null,
+    "kind": "movie",
+    "title": "Sintel",
+    "year": 2010,
+    "poster_url": "/api/media/2/poster",
+    "duration_s": 888,
+    "sort_number": null,
+    "age_rating": 10,
+    "match_status": "auto",
+    "status": "available"
+  },
+  "details": {
+    "overview": "Une jeune femme part à la recherche de son bébé dragon.",
+    "genres": ["Animation", "Fantastique"],
+    "provider": "demo"
+  },
+  "ancestors": [],
+  "children_count": 0,
+  "progress": {
+    "position_s": 312,
+    "is_watched": false,
+    "last_played_at": "2026-11-07T18:31:12Z",
+    "resume_at_s": 312
+  },
+  "is_watched": false,
+  "is_favorite": true,
+  "playback_uri": null
+}
