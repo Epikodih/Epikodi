@@ -94,20 +94,22 @@ impl<'a, R: ExtensionRepo + ?Sized> ExtensionManager<'a, R> {
             return Err(ExtensionError::AlreadyInstalled(pkg.manifest.id.clone()));
         }
         let grants = Grants::from_acceptance(&pkg.manifest.permissions, accepted)?;
-        let target = self.copy_in(&pkg)?;
+        let staged = self.copy_in(&pkg)?;
         let ext = Extension {
             id: pkg.manifest.id.clone(),
             name: pkg.manifest.name.clone(),
             version: pkg.manifest.version.clone(),
             kind: pkg.manifest.kind,
-            install_path: target.to_string_lossy().into_owned(),
+            install_path: staged.target.to_string_lossy().into_owned(),
             enabled: true,
             status: ExtensionStatus::Ok,
             last_error: None,
             permissions: grants,
             settings: pkg.manifest.settings.clone(),
         };
+        // Base d'abord ; si elle échoue, les fichiers copiés sont retirés.
         self.repo.save_extension(&ext)?;
+        staged.commit();
         tracing::info!(id = %ext.id, version = %ext.version, "extension installée");
         Ok(ext)
     }
@@ -138,7 +140,7 @@ impl<'a, R: ExtensionRepo + ?Sized> ExtensionManager<'a, R> {
             });
         }
         let grants = Grants::from_acceptance(&pkg.manifest.permissions, accepted)?;
-        let target = self.copy_in(&pkg)?;
+        let staged = self.copy_in(&pkg)?;
         // Réglages : défauts de la nouvelle version, valeurs de l'utilisateur
         // gardées pour les clés qui existent toujours.
         let mut settings = pkg.manifest.settings.clone();
@@ -151,14 +153,16 @@ impl<'a, R: ExtensionRepo + ?Sized> ExtensionManager<'a, R> {
             name: pkg.manifest.name.clone(),
             version: pkg.manifest.version.clone(),
             kind: pkg.manifest.kind,
-            install_path: target.to_string_lossy().into_owned(),
+            install_path: staged.target.to_string_lossy().into_owned(),
             status: ExtensionStatus::Ok,
             last_error: None,
             permissions: grants,
             settings,
             ..current
         };
+        // Si la base échoue, l'ancienne version est remise en place.
         self.repo.save_extension(&ext)?;
+        staged.commit();
         tracing::info!(id, version = %ext.version, "extension mise à jour");
         Ok(ext)
     }
@@ -168,12 +172,16 @@ impl<'a, R: ExtensionRepo + ?Sized> ExtensionManager<'a, R> {
             .repo
             .get_extension(id)?
             .ok_or_else(|| ExtensionError::NotFound(id.into()))?;
+        // La base d'abord : si elle échoue, l'extension reste installée et
+        // complète. Des fichiers restants après coup sont seulement signalés.
+        self.repo.delete_extension(id)?;
         let path = PathBuf::from(&ext.install_path);
         // On ne supprime que ce qui est dans notre dossier d'installation.
         if path.starts_with(&self.install_dir) && path.is_dir() {
-            fs::remove_dir_all(&path)?;
+            if let Err(e) = fs::remove_dir_all(&path) {
+                tracing::warn!(path = %path.display(), "fichiers de l'extension non supprimés : {e}");
+            }
         }
-        self.repo.delete_extension(id)?;
         tracing::info!(id, "extension désinstallée");
         Ok(())
     }
@@ -249,19 +257,75 @@ impl<'a, R: ExtensionRepo + ?Sized> ExtensionManager<'a, R> {
         out
     }
 
-    /// Copie le paquet dans `<install_dir>/<id>` (remplace l'ancienne version).
-    fn copy_in(&self, pkg: &Package) -> Result<PathBuf, ExtensionError> {
+    /// Copie le paquet dans `<install_dir>/<id>`. L'ancienne version est
+    /// mise de côté, et supprimée seulement par [`Staged::commit`] ; sans
+    /// `commit` (erreur, panique), tout est remis comme avant.
+    fn copy_in(&self, pkg: &Package) -> Result<Staged, ExtensionError> {
         fs::create_dir_all(&self.install_dir)?;
         let target = self.install_dir.join(&pkg.manifest.id);
+        let suffix = unique_name();
         let tmp = self
             .install_dir
-            .join(format!(".{}-{}", pkg.manifest.id, unique_name()));
+            .join(format!(".{}-new-{suffix}", pkg.manifest.id));
+        let mut staged = Staged {
+            target: target.clone(),
+            tmp: Some(tmp.clone()),
+            backup: None,
+            swapped: false,
+            committed: false,
+        };
         copy_dir(&pkg.dir, &tmp)?;
         if target.exists() {
-            fs::remove_dir_all(&target)?;
+            let backup = self
+                .install_dir
+                .join(format!(".{}-old-{suffix}", pkg.manifest.id));
+            fs::rename(&target, &backup)?;
+            staged.backup = Some(backup);
         }
         fs::rename(&tmp, &target)?;
-        Ok(target)
+        staged.tmp = None;
+        staged.swapped = true;
+        Ok(staged)
+    }
+}
+
+/// Une version copiée en place, en attente de validation.
+struct Staged {
+    target: PathBuf,
+    tmp: Option<PathBuf>,
+    backup: Option<PathBuf>,
+    swapped: bool,
+    committed: bool,
+}
+
+impl Staged {
+    /// Valide : l'ancienne version est supprimée.
+    fn commit(mut self) {
+        self.committed = true;
+        if let Some(b) = self.backup.take() {
+            if let Err(e) = fs::remove_dir_all(&b) {
+                tracing::warn!(path = %b.display(), "ancienne version non supprimée : {e}");
+            }
+        }
+    }
+}
+
+impl Drop for Staged {
+    fn drop(&mut self) {
+        if self.committed {
+            return;
+        }
+        if let Some(t) = &self.tmp {
+            let _ = fs::remove_dir_all(t);
+        }
+        if self.swapped {
+            let _ = fs::remove_dir_all(&self.target);
+        }
+        if let Some(b) = &self.backup {
+            if let Err(e) = fs::rename(b, &self.target) {
+                tracing::error!(path = %b.display(), "ancienne version non restaurée : {e}");
+            }
+        }
     }
 }
 
@@ -463,6 +527,92 @@ mod tests {
         assert_eq!(ext.version, "1.1.0");
         assert_eq!(ext.settings["city"], "Lyon");
         assert!(ext.permissions.allows(Permission::Storage));
+    }
+
+    /// Dépôt qui échoue à l'écriture quand on le demande.
+    struct FailingRepo {
+        inner: Store,
+        fail: std::cell::Cell<bool>,
+    }
+
+    impl ExtensionRepo for FailingRepo {
+        fn list_extensions(&self) -> epikodi_domain::DomainResult<Vec<Extension>> {
+            self.inner.list_extensions()
+        }
+        fn get_extension(&self, id: &str) -> epikodi_domain::DomainResult<Option<Extension>> {
+            self.inner.get_extension(id)
+        }
+        fn save_extension(&self, e: &Extension) -> epikodi_domain::DomainResult<()> {
+            if self.fail.get() {
+                return Err(epikodi_domain::DomainError::Internal("disque plein".into()));
+            }
+            self.inner.save_extension(e)
+        }
+        fn set_extension_status(
+            &self,
+            id: &str,
+            status: ExtensionStatus,
+            error: Option<&str>,
+        ) -> epikodi_domain::DomainResult<()> {
+            self.inner.set_extension_status(id, status, error)
+        }
+        fn delete_extension(&self, id: &str) -> epikodi_domain::DomainResult<()> {
+            if self.fail.get() {
+                return Err(epikodi_domain::DomainError::Internal("disque plein".into()));
+            }
+            self.inner.delete_extension(id)
+        }
+    }
+
+    fn installed_version(dir: &Path) -> String {
+        crate::manifest::load_manifest(dir).unwrap().version
+    }
+
+    /// Régression : la mise à jour supprimait l'ancienne version avant que
+    /// la base soit à jour.
+    #[test]
+    fn echec_en_base_garde_l_ancienne_version() {
+        let repo = FailingRepo {
+            inner: Store::in_memory(),
+            fail: std::cell::Cell::new(false),
+        };
+        let d = tempfile::tempdir().unwrap();
+        let (v1, v2) = (d.path().join("v1"), d.path().join("v2"));
+        write_extension(&v1, "weather", "1.0.0", &[]);
+        write_extension(&v2, "weather", "2.0.0", &[]);
+        let installed = d.path().join("installed");
+        let mgr = ExtensionManager::new(&repo, &installed);
+        let ext = mgr.install(&v1, &[]).unwrap();
+
+        repo.fail.set(true);
+        assert!(mgr.update("weather", &v2, &[]).is_err());
+        let dir = Path::new(&ext.install_path);
+        assert_eq!(installed_version(dir), "1.0.0", "fichiers restaurés");
+        assert_eq!(
+            repo.get_extension("weather").unwrap().unwrap().version,
+            "1.0.0"
+        );
+        let leftovers: Vec<_> = fs::read_dir(&installed)
+            .unwrap()
+            .flatten()
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n != "weather" && n != ".staging")
+            .collect();
+        assert!(leftovers.is_empty(), "rien ne traîne : {leftovers:?}");
+
+        // désinstallation qui échoue en base : les fichiers restent
+        assert!(mgr.uninstall("weather").is_err());
+        assert_eq!(installed_version(dir), "1.0.0");
+
+        // installation qui échoue en base : aucun fichier laissé
+        let other = d.path().join("other");
+        write_extension(&other, "other.ext", "1.0.0", &[]);
+        assert!(mgr.install(&other, &[]).is_err());
+        assert!(!installed.join("other.ext").exists());
+
+        repo.fail.set(false);
+        assert_eq!(mgr.update("weather", &v2, &[]).unwrap().version, "2.0.0");
+        assert_eq!(installed_version(dir), "2.0.0");
     }
 
     #[test]

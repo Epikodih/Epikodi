@@ -139,7 +139,7 @@ pub fn best_candidate<'c>(
 }
 
 /// Écrit une fiche dans la base (et l'affiche dans le cache).
-pub fn apply_record<R: MediaRepo + ?Sized>(
+pub fn apply_record<R: MediaRepo + LibraryRepo + ?Sized>(
     repo: &R,
     provider: &dyn MetadataProvider,
     images: &dyn ImageCache,
@@ -161,21 +161,22 @@ pub fn apply_record<R: MediaRepo + ?Sized>(
                     None
                 }
             });
-    repo.patch_media(
-        media_id,
-        &MediaPatch {
-            title: record.title.filter(|t| !t.trim().is_empty()),
-            year: record.year.map(Some),
-            age_rating: record.age_rating.map(Some),
-            duration_s: record.duration_s.map(Some),
-            poster_path: poster_path.map(Some),
-            match_status: Some(status),
-            ..Default::default()
-        },
-    )?;
+    let patch = MediaPatch {
+        title: record.title.filter(|t| !t.trim().is_empty()),
+        year: record.year.map(Some),
+        age_rating: record.age_rating.map(Some),
+        duration_s: record.duration_s.map(Some),
+        poster_path: poster_path.map(Some),
+        match_status: Some(status),
+        ..Default::default()
+    };
     let mut details = record.details;
     details.provider = Some(provider.name().to_string());
-    repo.set_details(media_id, &details)
+    // Champs et fiche écrits ensemble (jamais l'un sans l'autre).
+    repo.atomically(&mut || {
+        repo.patch_media(media_id, &patch)?;
+        repo.set_details(media_id, &details)
+    })
 }
 
 #[cfg(test)]

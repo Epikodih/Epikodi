@@ -6,7 +6,8 @@ use std::sync::Arc;
 
 use epikodi_domain::media::{check_age_rating, MatchStatus, MediaPatch};
 use epikodi_domain::ports::{
-    ImageCache, MediaRepo, MetadataCandidate, MetadataError, MetadataProvider, MetadataQuery,
+    ImageCache, LibraryRepo, MediaRepo, MetadataCandidate, MetadataError, MetadataProvider,
+    MetadataQuery,
 };
 use epikodi_domain::{DomainError, DomainResult, Id};
 
@@ -79,7 +80,7 @@ pub fn candidates<R: MediaRepo + ?Sized>(
 }
 
 /// Applique le résultat choisi par l'utilisateur.
-pub fn apply<R: MediaRepo + ?Sized>(
+pub fn apply<R: MediaRepo + LibraryRepo + ?Sized>(
     repo: &R,
     providers: &[Arc<dyn MetadataProvider>],
     images: &dyn ImageCache,
